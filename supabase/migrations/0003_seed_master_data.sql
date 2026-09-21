@@ -1,7 +1,10 @@
 -- Optional starter master data, edit freely before running.
 insert into departments (code, name, active) values
   ('MGT','Management','t'), ('MKT','Marketing','t'), ('FIN','Finance','t'),
-  ('ACC','Accounting','t'), ('ECO','Economics','t'), ('Dean / Faculty-wide','Dean / Faculty-wide','t')
+  ('ACC','Accounting','t'), ('ECO','Economics','t'),
+  ('HOM','Hospitality Management','t'), ('MIS','Management Information Systems','t'),
+  ('COM','Common','t'),
+  ('Dean / Faculty-wide','Dean / Faculty-wide','t')
 on conflict (name) do nothing;
 
 insert into academic_years (name, active) values ('2026–2027', true)
