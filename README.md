@@ -13,7 +13,7 @@ separate Supabase project — no shared data.
 | `dean`      | Read everything, decide (accept/return) department submissions |
 | `chair`     | Full CRUD on works/phases/tasks for their own department, manages their department's submission draft |
 | `committee` | Reads works flagged for committee review, adds/decides review rounds |
-| `viewer`    | Read-only everywhere |
+| `viewer`    | Read-only everywhere |   
 
 Enforcement is at the database level via Postgres Row Level Security
 (`supabase/migrations/0002_rls.sql`) — the UI just reflects what each role can do.
