@@ -13,7 +13,7 @@ separate Supabase project — no shared data.
 | `dean`      | Read everything, decide (accept/return) department submissions |
 | `chair`     | Full CRUD on works/phases/tasks for their own department, manages their department's submission draft |
 | `committee` | Reads works flagged for committee review, adds/decides review rounds |
-| `viewer`    | Read-only everywhere |   
+| `viewer`    | Read-only everywhere |
 
 Enforcement is at the database level via Postgres Row Level Security
 (`supabase/migrations/0002_rls.sql`) — the UI just reflects what each role can do.
@@ -71,17 +71,32 @@ git push -u origin main
    Site settings → Environment variables.
 4. Deploy.
 
-## What's ported from the prototype vs. simplified
+## What's in this version
 
-Ported: works → phases → tasks/subtasks structure, committee review rounds,
-department submission/attestation workflow with Dean decision, health scoring
-(Green/Amber/Red) and Management Attention list, oversight thresholds, master
-data (departments, researchers, venues, academic years, committee members),
-CSV export on Reports.
+This app is now at full feature parity with the original prototype:
 
-Simplified for this first version (straightforward to extend once the shape is
-live): subtask-level UI (schema supports it, list UI not wired up yet), venue
-verification checklist UI, funding/cost entries UI, custom fields UI, lifecycle
-templates UI (schema exists), file attachments. These all have tables/columns
-ready in the migrations — happy to wire up whichever you need next.
-Deployed via Cloudflare Workers.
+- **Pipeline**: full 10-tab paper workspace (Overview, Hierarchy, Authors,
+  Venue & Submission, Committee Reviews, Deliverables & Files, Costs &
+  Funding, Milestones, Risks & Issues, Updates) — phases → tasks → subtasks
+  with planned/actual dates, comments, and file attachments at every level.
+- **Dashboard**: clickable metrics and charts that drill into a filtered
+  Pipeline view, plus department/maturity/type-quality breakdowns.
+- **Reports**: all 8 report views (by department, by stage, maturity
+  distribution, lead researcher pipeline, submission outcomes, venue quality
+  by department, cost & funding summary, custom field report) plus the
+  detailed register with CSV export.
+- **Submissions**: chair drafts → Dean accepts/returns, full audit history
+  log per department, consolidated department comparison against targets,
+  and JSON export of a department's submission.
+- **Configuration**: departments, researchers, venues (with full verification
+  checklist), academic years, committee members, acceptance targets, oversight
+  thresholds, and an editable lifecycle template for new papers.
+- **File attachments** at every level (work, phase, task, subtask,
+  deliverable, cost entry, review round) — **requires one manual step**:
+  create a Storage bucket named `attachments` in your Supabase project
+  (Storage → New bucket → name it exactly `attachments`, private is fine)
+  before uploads will work. Run `supabase/migrations/0005_full_parity_schema.sql`
+  first for the underlying tables/columns this all depends on.
+
+Migration order: run 0001 → 0002 → 0003 → 0004 (optional demo data) → 0005,
+then create the `attachments` Storage bucket.

@@ -2,8 +2,11 @@ import { useState } from 'react'
 import SimpleCrudTable from '../../components/SimpleCrudTable'
 import Users from './Users'
 import Settings from './Settings'
+import Targets from './Targets'
+import VenuesFull from './VenuesFull'
+import LifecycleTemplate from './LifecycleTemplate'
 
-const TABS = ['Users & Roles', 'Departments', 'Researchers', 'Venues', 'Academic Years', 'Committee', 'Oversight Settings']
+const TABS = ['Users & Roles', 'Departments', 'Researchers', 'Venues', 'Academic Years', 'Committee', 'Acceptance Targets', 'Oversight Settings', 'Lifecycle Template']
 
 export default function AdminHome() {
   const [tab, setTab] = useState(TABS[0])
@@ -17,7 +20,7 @@ export default function AdminHome() {
 
       <div className="flex gap-2 flex-wrap">
         {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`btn ${tab === t ? 'btn-blue' : 'btn-ghost'}`}>{t}</button>
+          <button key={t} onClick={() => setTab(t)} className={`btn ${tab === t ? 'btn-blue' : 'btn-ghost'} !text-xs`}>{t}</button>
         ))}
       </div>
 
@@ -30,10 +33,7 @@ export default function AdminHome() {
         <SimpleCrudTable table="researchers" title="Researchers"
           fields={[{ key: 'name', label: 'Name', required: true }, { key: 'department', label: 'Department' }, { key: 'type', label: 'Type', default: 'Internal' }, { key: 'email', label: 'Email' }]} />
       )}
-      {tab === 'Venues' && (
-        <SimpleCrudTable table="venues" title="Venues"
-          fields={[{ key: 'name', label: 'Name', required: true }, { key: 'type', label: 'Type', default: 'Journal' }, { key: 'quality', label: 'Quality (Q1-Q4/Conf)' }, { key: 'publisher', label: 'Publisher' }]} />
-      )}
+      {tab === 'Venues' && <VenuesFull />}
       {tab === 'Academic Years' && (
         <SimpleCrudTable table="academic_years" title="Academic Years"
           fields={[{ key: 'name', label: 'Name', required: true }]} />
@@ -42,7 +42,9 @@ export default function AdminHome() {
         <SimpleCrudTable table="committee_members" title="Committee Members"
           fields={[{ key: 'name', label: 'Name', required: true }, { key: 'role', label: 'Role', default: 'Member' }]} />
       )}
+      {tab === 'Acceptance Targets' && <Targets />}
       {tab === 'Oversight Settings' && <Settings />}
+      {tab === 'Lifecycle Template' && <LifecycleTemplate />}
     </div>
   )
 }

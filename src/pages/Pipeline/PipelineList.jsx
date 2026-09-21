@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { badgeClass } from '../../lib/health'
 import { useAuth } from '../../context/AuthContext'
@@ -13,9 +13,13 @@ const EMPTY_WORK = {
 export default function PipelineList() {
   const nav = useNavigate()
   const { profile } = useAuth()
+  const [searchParams] = useSearchParams()
   const [works, setWorks] = useState([])
   const [departments, setDepartments] = useState([])
-  const [filters, setFilters] = useState({ q: '', department: '', status: '' })
+  const [filters, setFilters] = useState({
+    q: '', department: searchParams.get('department') || '', status: searchParams.get('status') || '',
+    stage: searchParams.get('stage') || ''
+  })
   const [showNew, setShowNew] = useState(false)
   const [draft, setDraft] = useState(EMPTY_WORK)
   const [loading, setLoading] = useState(true)
@@ -49,8 +53,9 @@ export default function PipelineList() {
 
   const filtered = works.filter(w =>
     (!filters.q || w.title.toLowerCase().includes(filters.q.toLowerCase())) &&
-    (!filters.department || w.department === filters.department) &&
-    (!filters.status || w.submission_status === filters.status)
+    (!filters.department || w.department === filters.department || (w.departments || []).includes(filters.department)) &&
+    (!filters.status || w.submission_status === filters.status) &&
+    (!filters.stage || w.stage === filters.stage)
   )
 
   const canCreate = profile?.role === 'admin' || profile?.role === 'chair'
@@ -74,7 +79,12 @@ export default function PipelineList() {
         </select>
         <select className="!w-48" value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}>
           <option value="">All statuses</option>
-          {['Pre-Submission', 'Submitted', 'Under Review', 'R&R', 'Resubmitted', 'Accepted', 'Published', 'Returned'].map(s =>
+          {['Pre-Submission', 'Submitted', 'Submitted Abstract', 'Under Review', 'R&R', 'Resubmitted', 'Accepted', 'Published', 'Returned'].map(s =>
+            <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select className="!w-48" value={filters.stage} onChange={e => setFilters(f => ({ ...f, stage: e.target.value }))}>
+          <option value="">All stages</option>
+          {['Onboarding', 'Execution', 'Advisory Review', 'Submission', 'Under Review', 'R&R', 'Accepted', 'Published'].map(s =>
             <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
