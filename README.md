@@ -84,3 +84,4 @@ live): subtask-level UI (schema supports it, list UI not wired up yet), venue
 verification checklist UI, funding/cost entries UI, custom fields UI, lifecycle
 templates UI (schema exists), file attachments. These all have tables/columns
 ready in the migrations — happy to wire up whichever you need next.
+Deployed via Cloudflare Workers.
