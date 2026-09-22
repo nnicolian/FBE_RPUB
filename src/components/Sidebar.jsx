@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { ROLE_LABELS } from '../lib/roles'
+import ChangePasswordModal from './ChangePasswordModal'
 
 const LINKS = [
   { to: '/', label: 'Dashboard', icon: '📊', roles: null },
@@ -12,6 +14,8 @@ const LINKS = [
 
 export default function Sidebar() {
   const { profile, signOut } = useAuth()
+  const [showChangePw, setShowChangePw] = useState(false)
+
   return (
     <aside className="w-60 shrink-0 bg-navy text-white min-h-screen flex flex-col">
       <div className="p-5 border-b border-white/10 flex items-center gap-3">
@@ -35,8 +39,10 @@ export default function Sidebar() {
       <div className="p-4 border-t border-white/10 text-xs">
         <div className="font-semibold">{profile?.full_name}</div>
         <div className="text-white/60">{ROLE_LABELS[profile?.role] || '—'}{profile?.department ? ` · ${profile.department}` : ''}</div>
-        <button onClick={signOut} className="mt-3 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Sign out</button>
+        <button onClick={() => setShowChangePw(true)} className="mt-3 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Change Password</button>
+        <button onClick={signOut} className="mt-2 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Sign out</button>
       </div>
+      {showChangePw && <ChangePasswordModal onClose={() => setShowChangePw(false)} />}
     </aside>
   )
 }

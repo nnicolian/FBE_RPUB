@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Login from './pages/Login'
+import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import PipelineList from './pages/Pipeline/PipelineList'
 import WorkDetail from './pages/Pipeline/WorkDetail'
@@ -13,6 +14,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={
         <ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>
       } />
