@@ -49,13 +49,13 @@ export default function Dashboard() {
   const goFiltered = (params) => nav(`/pipeline?${new URLSearchParams(params).toString()}`)
 
   const metrics = [
-    { label: 'Total works', value: works.length, go: () => nav('/pipeline') },
-    { label: 'Pre-Submission', value: works.filter(w => w.submission_status === 'Pre-Submission').length, go: () => goFiltered({ status: 'Pre-Submission' }) },
-    { label: 'Submitted', value: works.filter(w => ['Submitted', 'Submitted Abstract', 'Under Review', 'R&R'].includes(w.submission_status)).length, go: () => nav('/pipeline') },
-    { label: 'Accepted', value: works.filter(w => w.submission_status === 'Accepted').length, go: () => goFiltered({ status: 'Accepted' }) },
-    { label: 'Published', value: works.filter(w => w.submission_status === 'Published').length, go: () => goFiltered({ status: 'Published' }) },
-    { label: 'Q1 Targets', value: works.filter(w => w.venue_quality === 'Q1').length, go: () => nav('/pipeline') },
-    { label: 'Open Risks', value: works.reduce((n, w) => n + (w.risks || []).filter(r => r.status === 'Open').length, 0), go: () => nav('/pipeline') }
+    { label: 'Total works', value: works.length, icon: '📚', go: () => nav('/pipeline') },
+    { label: 'Pre-Submission', value: works.filter(w => w.submission_status === 'Pre-Submission').length, icon: '📝', go: () => goFiltered({ status: 'Pre-Submission' }) },
+    { label: 'Submitted', value: works.filter(w => ['Submitted', 'Submitted Abstract', 'Under Review', 'R&R'].includes(w.submission_status)).length, icon: '📤', go: () => nav('/pipeline') },
+    { label: 'Accepted', value: works.filter(w => w.submission_status === 'Accepted').length, icon: '✅', go: () => goFiltered({ status: 'Accepted' }) },
+    { label: 'Published', value: works.filter(w => w.submission_status === 'Published').length, icon: '🏆', go: () => goFiltered({ status: 'Published' }) },
+    { label: 'Q1 Targets', value: works.filter(w => w.venue_quality === 'Q1').length, icon: '⭐', go: () => nav('/pipeline') },
+    { label: 'Open Risks', value: works.reduce((n, w) => n + (w.risks || []).filter(r => r.status === 'Open').length, 0), icon: '⚠️', go: () => nav('/pipeline') }
   ]
 
   const maxDept = Math.max(1, ...departments.map(d => works.filter(w => w.department === d.name || (w.departments || []).includes(d.name)).length))
@@ -71,15 +71,19 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-slate-500 text-sm">Overview of the research pipeline across all departments.</p>
+      <div className="bg-gradient-to-r from-navy to-brand rounded-2xl p-6 text-white flex items-center gap-4 shadow-md">
+        <div className="text-5xl leading-none">🎓</div>
+        <div>
+          <h1 className="text-2xl font-bold">AUST, FBE Research and Publications Platform</h1>
+          <p className="text-white/80 text-sm">Overview of the research pipeline across all departments.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {metrics.map(m => (
-          <div key={m.label} className="card cursor-pointer hover:shadow-md transition" onClick={m.go}>
-            <b className="text-2xl block">{m.value}</b>
+          <div key={m.label} className="card cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all" onClick={m.go}>
+            <span className="text-xl">{m.icon}</span>
+            <b className="text-2xl block mt-1">{m.value}</b>
             <span className="text-xs text-slate-400">{m.label}</span>
           </div>
         ))}

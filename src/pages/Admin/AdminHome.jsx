@@ -5,6 +5,7 @@ import Settings from './Settings'
 import Targets from './Targets'
 import VenuesFull from './VenuesFull'
 import LifecycleTemplate from './LifecycleTemplate'
+import PageHeader from '../../components/PageHeader'
 
 const TABS = ['Users & Roles', 'Departments', 'Researchers', 'Venues', 'Academic Years', 'Committee', 'Acceptance Targets', 'Oversight Settings', 'Lifecycle Template']
 
@@ -13,15 +14,17 @@ export default function AdminHome() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">Configuration</h1>
-        <p className="text-slate-500 text-sm">Master data, user roles, and oversight thresholds for the whole app.</p>
-      </div>
+      <PageHeader icon="⚙️" title="Configuration" subtitle="Master data, user roles, and oversight thresholds for the whole app." />
 
-      <div className="flex gap-2 flex-wrap">
-        {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`btn ${tab === t ? 'btn-blue' : 'btn-ghost'} !text-xs`}>{t}</button>
-        ))}
+      <div className="border-b border-slate-200 overflow-x-auto">
+        <div className="flex gap-1 min-w-max">
+          {TABS.map(t => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-3 py-2 text-sm font-semibold border-b-2 transition whitespace-nowrap ${tab === t ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
 
       {tab === 'Users & Roles' && <Users />}

@@ -3,19 +3,20 @@ import { useAuth } from '../context/AuthContext'
 import { ROLE_LABELS } from '../lib/roles'
 
 const LINKS = [
-  { to: '/', label: 'Dashboard', roles: null },
-  { to: '/pipeline', label: 'Research Pipeline', roles: null },
-  { to: '/submissions', label: 'Submissions', roles: null },
-  { to: '/reports', label: 'Reports', roles: null },
-  { to: '/admin', label: 'Configuration', roles: ['admin', 'dean'] }
+  { to: '/', label: 'Dashboard', icon: '📊', roles: null },
+  { to: '/pipeline', label: 'Research Pipeline', icon: '📚', roles: null },
+  { to: '/submissions', label: 'Submissions', icon: '📤', roles: null },
+  { to: '/reports', label: 'Reports', icon: '📈', roles: null },
+  { to: '/admin', label: 'Configuration', icon: '⚙️', roles: ['admin', 'dean'] }
 ]
 
 export default function Sidebar() {
   const { profile, signOut } = useAuth()
   return (
     <aside className="w-60 shrink-0 bg-navy text-white min-h-screen flex flex-col">
-      <div className="p-5 border-b border-white/10">
-        <div className="font-bold text-lg leading-tight">FBE Research<br />& Publications</div>
+      <div className="p-5 border-b border-white/10 flex items-center gap-3">
+        <div className="text-3xl leading-none">🎓</div>
+        <div className="font-bold text-base leading-tight">AUST<br />FBE Research & Publications</div>
       </div>
       <nav className="flex-1 p-3 space-y-1">
         {LINKS.filter(l => !l.roles || l.roles.includes(profile?.role)).map(l => (
@@ -24,10 +25,10 @@ export default function Sidebar() {
             to={l.to}
             end={l.to === '/'}
             className={({ isActive }) =>
-              `block px-3 py-2 rounded-lg text-sm font-semibold ${isActive ? 'bg-white/15' : 'hover:bg-white/10 text-white/85'}`
+              `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold ${isActive ? 'bg-white/15' : 'hover:bg-white/10 text-white/85'}`
             }
           >
-            {l.label}
+            <span>{l.icon}</span>{l.label}
           </NavLink>
         ))}
       </nav>

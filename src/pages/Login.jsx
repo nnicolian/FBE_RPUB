@@ -23,7 +23,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy to-brand p-4">
       <form onSubmit={onSubmit} className="card w-full max-w-sm space-y-4">
         <div>
-          <h1 className="text-xl font-bold">FBE Research & Publications</h1>
+          <div className="text-4xl mb-2">🎓</div>
+          <h1 className="text-xl font-bold">AUST, FBE Research & Publications</h1>
           <p className="text-sm text-slate-500">Sign in to continue</p>
         </div>
         {error && <div className="text-sm text-rose-600 bg-rose-50 rounded-lg px-3 py-2">{error}</div>}

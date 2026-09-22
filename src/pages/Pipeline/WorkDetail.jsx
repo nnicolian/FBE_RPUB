@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { badgeClass, deriveHealth } from '../../lib/health'
 import { useAuth } from '../../context/AuthContext'
 import { canManageWork } from '../../lib/roles'
+import { useToast } from '../../context/ToastContext'
 
 import OverviewTab from './tabs/OverviewTab'
 import HierarchyTab from './tabs/HierarchyTab'
@@ -27,6 +28,7 @@ export default function WorkDetail() {
   const { id } = useParams()
   const nav = useNavigate()
   const { profile } = useAuth()
+  const { showToast } = useToast()
   const [work, setWork] = useState(null)
   const [phases, setPhases] = useState([])
   const [milestones, setMilestones] = useState([])
@@ -64,11 +66,13 @@ export default function WorkDetail() {
   async function patchWork(fields) {
     const { error } = await supabase.from('works').update(fields).eq('id', work.id)
     if (!error) setWork(w => ({ ...w, ...fields }))
+    showToast(error ? 'Could not save' : 'Saved', error ? 'error' : 'success')
   }
 
   async function deleteWork() {
     if (!confirm(`Delete "${work.title}"? This removes the paper and everything under it (phases, tasks, milestones, risks, updates, files). This cannot be undone.`)) return
     await supabase.from('works').delete().eq('id', work.id)
+    showToast('Paper deleted')
     nav('/pipeline')
   }
 
@@ -76,11 +80,14 @@ export default function WorkDetail() {
     <div className="space-y-4">
       <button className="text-sm text-brand font-semibold" onClick={() => nav('/pipeline')}>&larr; Back to pipeline</button>
 
-      <div className="card">
+      <div className="card bg-gradient-to-br from-white to-blue-50/60">
         <div className="flex justify-between items-start gap-4">
-          <div>
-            <h1 className="text-xl font-bold">Research Paper Workspace — {work.title}</h1>
-            <p className="text-sm text-slate-500">{work.author_order || work.lead || 'No lead set'} · {[work.department, ...(work.departments || []).filter(d => d !== work.department)].join(' + ')} · {work.research_type || 'Type not set'}</p>
+          <div className="flex items-start gap-3">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-navy to-brand text-white flex items-center justify-center text-xl shrink-0">📄</div>
+            <div>
+              <h1 className="text-xl font-bold leading-tight">{work.title}</h1>
+              <p className="text-sm text-slate-500">{work.author_order || work.lead || 'No lead set'} · {[work.department, ...(work.departments || []).filter(d => d !== work.department)].join(' + ')} · {work.research_type || 'Type not set'}</p>
+            </div>
           </div>
           <div className="text-right space-y-1 shrink-0">
             {canEdit ? (
@@ -94,10 +101,15 @@ export default function WorkDetail() {
         </div>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {TABS.map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)} className={`btn ${tab === key ? 'btn-blue' : 'btn-ghost'} !text-xs`}>{label}</button>
-        ))}
+      <div className="border-b border-slate-200 overflow-x-auto">
+        <div className="flex gap-1 min-w-max">
+          {TABS.map(([key, label]) => (
+            <button key={key} onClick={() => setTab(key)}
+              className={`px-3 py-2 text-sm font-semibold border-b-2 transition whitespace-nowrap ${tab === key ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {tab === 'overview' && <OverviewTab work={work} health={health} canEdit={canEdit} onPatch={patchWork} />}

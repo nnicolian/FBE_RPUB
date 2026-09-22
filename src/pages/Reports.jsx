@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { badgeClass } from '../lib/health'
+import PageHeader from '../components/PageHeader'
 
 function toCsv(rows) {
   if (!rows.length) return ''
@@ -93,13 +94,8 @@ export default function Reports() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Reports</h1>
-          <p className="text-slate-500 text-sm">Detailed analytics across the research portfolio. Click any bar, row, or researcher to open it in the Pipeline.</p>
-        </div>
-        <button className="btn btn-blue" onClick={exportCsv}>Export CSV</button>
-      </div>
+      <PageHeader icon="📈" title="Reports" subtitle="Detailed analytics across the research portfolio. Click any bar, row, or researcher to open it in the Pipeline."
+        action={<button className="btn btn-blue" onClick={exportCsv}>Export CSV</button>} />
 
       <div className="card flex flex-wrap gap-3">
         <select className="!w-48" value={filters.department} onChange={e => setFilters(f => ({ ...f, department: e.target.value }))}>

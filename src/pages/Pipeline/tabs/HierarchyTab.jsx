@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
 import FileList from '../../../components/FileList'
+import { useToast } from '../../../context/ToastContext'
 
 const STATUSES = ['Not Started', 'In Progress', 'Completed', 'Blocked']
 
@@ -82,46 +83,56 @@ function TaskRow({ t, canEdit, onUpdateTask, onDeleteTask, onAddSubtask, onUpdat
 }
 
 export default function HierarchyTab({ work, phases, canEdit, onReload }) {
+  const { showToast } = useToast()
   async function addPhase() {
     const name = prompt('Phase name?'); if (!name) return
     await supabase.from('phases').insert({ work_id: work.id, name, seq: phases.length })
+    showToast('Phase added')
     onReload()
   }
   async function deletePhase(phaseId) {
     if (!confirm('Delete this phase and everything under it (tasks, subtasks, files)?')) return
     await supabase.from('phases').delete().eq('id', phaseId)
+    showToast('Phase deleted')
     onReload()
   }
   async function addTask(phaseId) {
     const name = prompt('Task name?'); if (!name) return
     await supabase.from('tasks').insert({ phase_id: phaseId, name })
+    showToast('Task added')
     onReload()
   }
   async function deleteTask(taskId) {
     if (!confirm('Delete this task and its subtasks?')) return
     await supabase.from('tasks').delete().eq('id', taskId)
+    showToast('Task deleted')
     onReload()
   }
   async function addSubtask(taskId) {
     const name = prompt('Sub-task name?'); if (!name) return
     await supabase.from('subtasks').insert({ task_id: taskId, name })
+    showToast('Sub-task added')
     onReload()
   }
   async function deleteSubtask(subtaskId) {
     if (!confirm('Delete this sub-task?')) return
     await supabase.from('subtasks').delete().eq('id', subtaskId)
+    showToast('Sub-task deleted')
     onReload()
   }
   async function updatePhase(phaseId, fields) {
-    await supabase.from('phases').update(fields).eq('id', phaseId)
+    const { error } = await supabase.from('phases').update(fields).eq('id', phaseId)
+    showToast(error ? 'Could not save' : 'Saved', error ? 'error' : 'success')
     onReload()
   }
   async function updateTask(taskId, fields) {
-    await supabase.from('tasks').update(fields).eq('id', taskId)
+    const { error } = await supabase.from('tasks').update(fields).eq('id', taskId)
+    showToast(error ? 'Could not save' : 'Saved', error ? 'error' : 'success')
     onReload()
   }
   async function updateSubtask(subtaskId, fields) {
-    await supabase.from('subtasks').update(fields).eq('id', subtaskId)
+    const { error } = await supabase.from('subtasks').update(fields).eq('id', subtaskId)
+    showToast(error ? 'Could not save' : 'Saved', error ? 'error' : 'success')
     onReload()
   }
 

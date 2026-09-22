@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { badgeClass } from '../../lib/health'
 import { useAuth } from '../../context/AuthContext'
 import { canManageWork } from '../../lib/roles'
+import PageHeader from '../../components/PageHeader'
 
 const EMPTY_WORK = {
   title: '', department: '', research_type: 'Journal Article', submission_status: 'Pre-Submission',
@@ -86,13 +87,8 @@ export default function PipelineList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Research Pipeline</h1>
-          <p className="text-slate-500 text-sm">All research outputs in progress or completed.</p>
-        </div>
-        {canCreate && <button className="btn btn-blue" onClick={() => setShowNew(true)}>+ New Work</button>}
-      </div>
+      <PageHeader icon="📚" title="Research Pipeline" subtitle="All research outputs in progress or completed."
+        action={canCreate && <button className="btn btn-blue" onClick={() => setShowNew(true)}>+ New Work</button>} />
 
       <div className="card flex flex-wrap gap-3 items-center">
         <input placeholder="Search title…" className="!w-64" value={filters.q}
