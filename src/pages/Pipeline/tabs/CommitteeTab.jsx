@@ -31,6 +31,11 @@ export default function CommitteeTab({ phases, onReload }) {
     await supabase.from('review_rounds').update({ researcher_response, response_date: new Date().toISOString().slice(0, 10) }).eq('id', round.id)
     onReload()
   }
+  async function deleteRound(round) {
+    if (!confirm('Delete this review round?')) return
+    await supabase.from('review_rounds').delete().eq('id', round.id)
+    onReload()
+  }
 
   const ASSESS = ['Not Assessed', 'Satisfactory', 'Needs Work', 'Unsatisfactory']
 
@@ -76,6 +81,7 @@ export default function CommitteeTab({ phases, onReload }) {
                 {canReview && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => decide(p, r, 'Blessed')}>Bless</button>}
                 {canReview && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => decide(p, r, 'Changes Requested')}>Request changes</button>}
                 <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => respond(r)}>Researcher Response</button>
+                {canReview && <button className="btn btn-ghost !py-1 !px-2 text-xs text-rose-500" onClick={() => deleteRound(r)}>Delete</button>}
               </div>
             </div>
           ))}

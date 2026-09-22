@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../context/AuthContext'
+import FileList from '../../../components/FileList'
 
 export default function UpdatesTab({ work, updates, canEdit, onReload }) {
   const { profile } = useAuth()
@@ -30,6 +31,7 @@ export default function UpdatesTab({ work, updates, canEdit, onReload }) {
               <div>
                 <strong className="text-sm">{u.update_date} {u.status ? `· ${u.status}` : ''}</strong>
                 <div className="text-xs text-slate-500">{u.note} <span className="text-slate-400">({u.author})</span></div>
+                <FileList entityType="work_update" entityId={u.id} canEdit={canEdit} />
               </div>
               {canEdit && <button className="text-xs text-rose-500" onClick={() => removeUpdate(u.id)}>Delete</button>}
             </div>

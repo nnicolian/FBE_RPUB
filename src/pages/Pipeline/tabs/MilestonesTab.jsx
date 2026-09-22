@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
+import FileList from '../../../components/FileList'
 
 const STATUSES = ['Not Started', 'In Progress', 'Completed', 'Blocked']
 
@@ -33,6 +34,7 @@ export default function MilestonesTab({ work, milestones, canEdit, onReload }) {
               <div>
                 <strong className="text-sm">◆ {m.name}</strong>
                 <div className="text-xs text-slate-400">{m.status} · {m.due || '—'}</div>
+                <FileList entityType="milestone" entityId={m.id} canEdit={canEdit} />
               </div>
               {canEdit && (
                 <div className="flex items-center gap-2">

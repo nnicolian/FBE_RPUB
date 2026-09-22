@@ -66,6 +66,12 @@ export default function WorkDetail() {
     if (!error) setWork(w => ({ ...w, ...fields }))
   }
 
+  async function deleteWork() {
+    if (!confirm(`Delete "${work.title}"? This removes the paper and everything under it (phases, tasks, milestones, risks, updates, files). This cannot be undone.`)) return
+    await supabase.from('works').delete().eq('id', work.id)
+    nav('/pipeline')
+  }
+
   return (
     <div className="space-y-4">
       <button className="text-sm text-brand font-semibold" onClick={() => nav('/pipeline')}>&larr; Back to pipeline</button>
@@ -83,6 +89,7 @@ export default function WorkDetail() {
               </select>
             ) : <span className={`badge ${badgeClass(work.submission_status)}`}>{work.submission_status}</span>}
             <div><span className={`badge ${badgeClass(health.status)}`}>{health.status} health</span></div>
+            {canEdit && <button className="text-xs text-rose-500 font-semibold" onClick={deleteWork}>Delete this paper</button>}
           </div>
         </div>
       </div>

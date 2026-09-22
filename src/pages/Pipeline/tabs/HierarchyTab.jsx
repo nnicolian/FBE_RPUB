@@ -9,7 +9,7 @@ function DateField({ label, value, onChange }) {
   return <div><label>{label}</label><input type="date" defaultValue={value || ''} onBlur={e => onChange(e.target.value || null)} /></div>
 }
 
-function SubtaskRow({ s, onUpdate }) {
+function SubtaskRow({ s, canEdit, onUpdate, onDelete }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="ml-8 mt-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
@@ -17,9 +17,14 @@ function SubtaskRow({ s, onUpdate }) {
         <button className="text-left font-semibold" onClick={() => setOpen(o => !o)}>↳ {s.name}</button>
         <div className="flex items-center gap-2">
           <span className={`badge ${badgeClass(s.status)}`}>{s.status}</span>
-          <select className="!w-36 !py-1" value={s.status} onChange={e => onUpdate({ status: e.target.value })}>
-            {STATUSES.map(x => <option key={x}>{x}</option>)}
-          </select>
+          {canEdit && (
+            <>
+              <select className="!w-36 !py-1" value={s.status} onChange={e => onUpdate({ status: e.target.value })}>
+                {STATUSES.map(x => <option key={x}>{x}</option>)}
+              </select>
+              <button className="text-xs text-rose-500" onClick={onDelete}>Delete</button>
+            </>
+          )}
         </div>
       </div>
       {open && (
@@ -29,14 +34,14 @@ function SubtaskRow({ s, onUpdate }) {
           <DateField label="Actual Start" value={s.actual_start} onChange={v => onUpdate({ actual_start: v })} />
           <DateField label="Actual End" value={s.actual_end} onChange={v => onUpdate({ actual_end: v })} />
           <div className="col-span-4"><label>Comments</label><textarea defaultValue={s.comments} onBlur={e => onUpdate({ comments: e.target.value })} /></div>
-          <div className="col-span-4"><FileList entityType="subtask" entityId={s.id} /></div>
+          <div className="col-span-4"><FileList entityType="subtask" entityId={s.id} canEdit={canEdit} /></div>
         </div>
       )}
     </div>
   )
 }
 
-function TaskRow({ t, onUpdateTask, onAddSubtask, onUpdateSubtask }) {
+function TaskRow({ t, canEdit, onUpdateTask, onDeleteTask, onAddSubtask, onUpdateSubtask, onDeleteSubtask }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="ml-6 mt-2 border border-slate-200 rounded-lg p-2 bg-white">
@@ -44,9 +49,14 @@ function TaskRow({ t, onUpdateTask, onAddSubtask, onUpdateSubtask }) {
         <button className="text-left font-semibold" onClick={() => setOpen(o => !o)}>{t.name}</button>
         <div className="flex items-center gap-2">
           <span className={`badge ${badgeClass(t.status)}`}>{t.status}</span>
-          <select className="!w-36 !py-1" value={t.status} onChange={e => onUpdateTask({ status: e.target.value })}>
-            {STATUSES.map(x => <option key={x}>{x}</option>)}
-          </select>
+          {canEdit && (
+            <>
+              <select className="!w-36 !py-1" value={t.status} onChange={e => onUpdateTask({ status: e.target.value })}>
+                {STATUSES.map(x => <option key={x}>{x}</option>)}
+              </select>
+              <button className="text-xs text-rose-500" onClick={onDeleteTask}>Delete</button>
+            </>
+          )}
         </div>
       </div>
       {open && (
@@ -60,11 +70,11 @@ function TaskRow({ t, onUpdateTask, onAddSubtask, onUpdateSubtask }) {
             <DateField label="Actual End" value={t.actual_end} onChange={v => onUpdateTask({ actual_end: v })} />
           </div>
           <div><label>Comments</label><textarea defaultValue={t.comments} onBlur={e => onUpdateTask({ comments: e.target.value })} /></div>
-          <FileList entityType="task" entityId={t.id} />
+          <FileList entityType="task" entityId={t.id} canEdit={canEdit} />
           {(t.subtasks || []).map(s => (
-            <SubtaskRow key={s.id} s={s} onUpdate={fields => onUpdateSubtask(s.id, fields)} />
+            <SubtaskRow key={s.id} s={s} canEdit={canEdit} onUpdate={fields => onUpdateSubtask(s.id, fields)} onDelete={() => onDeleteSubtask(s.id)} />
           ))}
-          <button className="ml-8 text-xs text-brand font-semibold" onClick={() => onAddSubtask(t.id)}>+ Sub-task</button>
+          {canEdit && <button className="ml-8 text-xs text-brand font-semibold" onClick={() => onAddSubtask(t.id)}>+ Sub-task</button>}
         </div>
       )}
     </div>
@@ -77,14 +87,29 @@ export default function HierarchyTab({ work, phases, canEdit, onReload }) {
     await supabase.from('phases').insert({ work_id: work.id, name, seq: phases.length })
     onReload()
   }
+  async function deletePhase(phaseId) {
+    if (!confirm('Delete this phase and everything under it (tasks, subtasks, files)?')) return
+    await supabase.from('phases').delete().eq('id', phaseId)
+    onReload()
+  }
   async function addTask(phaseId) {
     const name = prompt('Task name?'); if (!name) return
     await supabase.from('tasks').insert({ phase_id: phaseId, name })
     onReload()
   }
+  async function deleteTask(taskId) {
+    if (!confirm('Delete this task and its subtasks?')) return
+    await supabase.from('tasks').delete().eq('id', taskId)
+    onReload()
+  }
   async function addSubtask(taskId) {
     const name = prompt('Sub-task name?'); if (!name) return
     await supabase.from('subtasks').insert({ task_id: taskId, name })
+    onReload()
+  }
+  async function deleteSubtask(subtaskId) {
+    if (!confirm('Delete this sub-task?')) return
+    await supabase.from('subtasks').delete().eq('id', subtaskId)
     onReload()
   }
   async function updatePhase(phaseId, fields) {
@@ -135,9 +160,12 @@ export default function HierarchyTab({ work, phases, canEdit, onReload }) {
               <span className={`badge ${badgeClass(p.status)}`}>{p.status}</span>
             </div>
             {canEdit && (
-              <select className="!w-40 !py-1" value={p.status} onChange={e => updatePhase(p.id, { status: e.target.value })}>
-                {STATUSES.map(x => <option key={x}>{x}</option>)}
-              </select>
+              <div className="flex items-center gap-2">
+                <select className="!w-40 !py-1" value={p.status} onChange={e => updatePhase(p.id, { status: e.target.value })}>
+                  {STATUSES.map(x => <option key={x}>{x}</option>)}
+                </select>
+                <button className="text-xs text-rose-500" onClick={() => deletePhase(p.id)}>Delete Phase</button>
+              </div>
             )}
           </div>
           <div className="grid grid-cols-4 gap-2 text-xs mt-2">
@@ -147,12 +175,14 @@ export default function HierarchyTab({ work, phases, canEdit, onReload }) {
             <DateField label="Actual End" value={p.actual_end} onChange={v => updatePhase(p.id, { actual_end: v })} />
           </div>
           <div className="mt-2"><label>Comments</label><textarea defaultValue={p.comments} onBlur={e => updatePhase(p.id, { comments: e.target.value })} /></div>
-          <FileList entityType="phase" entityId={p.id} />
+          <FileList entityType="phase" entityId={p.id} canEdit={canEdit} />
           {(p.tasks || []).map(t => (
-            <TaskRow key={t.id} t={t}
+            <TaskRow key={t.id} t={t} canEdit={canEdit}
               onUpdateTask={fields => updateTask(t.id, fields)}
+              onDeleteTask={() => deleteTask(t.id)}
               onAddSubtask={addSubtask}
-              onUpdateSubtask={updateSubtask} />
+              onUpdateSubtask={updateSubtask}
+              onDeleteSubtask={deleteSubtask} />
           ))}
           {canEdit && <button className="ml-6 mt-2 text-xs text-brand font-semibold" onClick={() => addTask(p.id)}>+ Task</button>}
         </div>

@@ -1,4 +1,5 @@
 import { badgeClass } from '../../../lib/health'
+import FileList from '../../../components/FileList'
 
 export default function OverviewTab({ work, health, canEdit, onPatch }) {
   const boxes = [
@@ -31,6 +32,11 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
             <div className="text-xs text-slate-500 mt-1">{health.reasons.join('; ') || 'No attention criteria triggered'}</div>
           </div>
         </div>
+      </div>
+
+      <div className="card">
+        <h3 className="font-bold mb-2">Research-Level Files</h3>
+        <FileList entityType="work" entityId={work.id} canEdit={canEdit} />
       </div>
 
       {canEdit && (

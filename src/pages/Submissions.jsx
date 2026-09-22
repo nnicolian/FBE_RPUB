@@ -28,13 +28,25 @@ export default function Submissions() {
 
   async function load() {
     setLoading(true)
-    const [{ data: s }, { data: w }, { data: t }, { data: h }] = await Promise.all([
+    const [{ data: s }, { data: w }, { data: t }, { data: h }, { data: depts }] = await Promise.all([
       supabase.from('submissions').select('*').order('department'),
       supabase.from('works').select('*'),
       supabase.from('acceptance_targets').select('*'),
-      supabase.from('submission_history').select('*').order('event_date', { ascending: false })
+      supabase.from('submission_history').select('*').order('event_date', { ascending: false }),
+      supabase.from('departments').select('*').eq('active', true)
     ])
-    setRows(s || []); setWorks(w || []); setTargets(t || [])
+    let submissionRows = s || []
+    // Self-heal: make sure every active department (except Dean / Faculty-wide) has a
+    // submissions row, in case one was added after the initial seed migration ran.
+    const existingNames = new Set(submissionRows.map(r => r.department))
+    const missing = (depts || []).filter(d => d.name !== 'Dean / Faculty-wide' && !existingNames.has(d.name))
+    if (missing.length) {
+      const { data: inserted } = await supabase.from('submissions').insert(
+        missing.map(d => ({ department: d.name, status: 'Draft' }))
+      ).select()
+      submissionRows = [...submissionRows, ...(inserted || [])].sort((a, b) => a.department.localeCompare(b.department))
+    }
+    setRows(submissionRows); setWorks(w || []); setTargets(t || [])
     const grouped = {}
     ;(h || []).forEach(row => { (grouped[row.department] ||= []).push(row) })
     setHistory(grouped)

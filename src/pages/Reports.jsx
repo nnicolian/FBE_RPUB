@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { badgeClass } from '../lib/health'
 
@@ -10,10 +11,10 @@ function toCsv(rows) {
   return lines.join('\n')
 }
 
-function Bar({ label, value, max }) {
+function Bar({ label, value, max, onClick }) {
   const pct = max ? (value / max) * 100 : 0
   return (
-    <div className="flex items-center gap-2 py-1">
+    <div className={`flex items-center gap-2 py-1 ${onClick ? 'cursor-pointer hover:bg-slate-50 rounded' : ''}`} onClick={onClick}>
       <div className="w-40 text-xs font-semibold shrink-0">{label}</div>
       <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-brand" style={{ width: `${pct}%` }} /></div>
       <div className="w-8 text-xs text-slate-400 text-right">{value}</div>
@@ -26,6 +27,7 @@ const MATURITY_LEVELS = ['Not Classified', 'Idea', 'Work in Progress', 'Conferen
 const STAGES = ['Onboarding', 'Execution', 'Advisory Review', 'Submission', 'Under Review', 'R&R', 'Accepted', 'Published']
 
 export default function Reports() {
+  const nav = useNavigate()
   const [works, setWorks] = useState([])
   const [researchers, setResearchers] = useState([])
   const [departments, setDepartments] = useState([])
@@ -52,6 +54,8 @@ export default function Reports() {
     (!filters.year || w.academic_year === filters.year) &&
     (!filters.quality || w.venue_quality === filters.quality)
   )
+
+  const goFiltered = (params) => nav(`/pipeline?${new URLSearchParams(params).toString()}`)
 
   function exportCsv() {
     const rows = filtered.map(w => ({
@@ -92,7 +96,7 @@ export default function Reports() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Reports</h1>
-          <p className="text-slate-500 text-sm">Detailed analytics across the research portfolio.</p>
+          <p className="text-slate-500 text-sm">Detailed analytics across the research portfolio. Click any bar, row, or researcher to open it in the Pipeline.</p>
         </div>
         <button className="btn btn-blue" onClick={exportCsv}>Export CSV</button>
       </div>
@@ -115,17 +119,27 @@ export default function Reports() {
       <div className="grid md:grid-cols-2 gap-4">
         <div className="card">
           <h3 className="font-bold mb-2">Research by Department</h3>
-          {departments.map(d => <Bar key={d.id} label={d.name} max={maxDept} value={filtered.filter(w => w.department === d.name || (w.departments || []).includes(d.name)).length} />)}
+          {departments.map(d => (
+            <Bar key={d.id} label={d.name} max={maxDept}
+              value={filtered.filter(w => w.department === d.name || (w.departments || []).includes(d.name)).length}
+              onClick={() => goFiltered({ department: d.name })} />
+          ))}
         </div>
         <div className="card">
           <h3 className="font-bold mb-2">Research by Stage</h3>
-          {STAGES.map(s => <Bar key={s} label={s} max={maxStage} value={filtered.filter(w => w.stage === s).length} />)}
+          {STAGES.map(s => (
+            <Bar key={s} label={s} max={maxStage} value={filtered.filter(w => w.stage === s).length}
+              onClick={() => goFiltered({ stage: s })} />
+          ))}
         </div>
       </div>
 
       <div className="card">
         <h3 className="font-bold mb-2">Research Maturity Distribution</h3>
-        {MATURITY_LEVELS.map(m => <Bar key={m} label={m} max={maxMaturity} value={filtered.filter(w => (w.research_maturity || 'Not Classified') === m).length} />)}
+        {MATURITY_LEVELS.map(m => (
+          <Bar key={m} label={m} max={maxMaturity} value={filtered.filter(w => (w.research_maturity || 'Not Classified') === m).length}
+            onClick={() => goFiltered({ maturity: m })} />
+        ))}
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -134,13 +148,22 @@ export default function Reports() {
           {leadRows.length === 0 ? <p className="text-slate-400 text-sm">No matching researchers.</p> : (
             <table>
               <thead><tr><th>Researcher</th><th>Lead</th><th>Co-author</th><th>Accepted</th></tr></thead>
-              <tbody>{leadRows.map(r => <tr key={r.name}><td className="font-semibold">{r.name}</td><td>{r.leadCount}</td><td>{r.coauthorCount}</td><td>{r.acceptedCount}</td></tr>)}</tbody>
+              <tbody>
+                {leadRows.map(r => (
+                  <tr key={r.name} className="cursor-pointer hover:bg-slate-50" onClick={() => goFiltered({ lead: r.name })}>
+                    <td className="font-semibold text-brand">{r.name}</td><td>{r.leadCount}</td><td>{r.coauthorCount}</td><td>{r.acceptedCount}</td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           )}
         </div>
         <div className="card">
           <h3 className="font-bold mb-2">Submission / Acceptance Outcomes</h3>
-          {outcomeStatuses.map(s => <Bar key={s} label={s} max={maxOutcome} value={filtered.filter(w => w.submission_status === s).length} />)}
+          {outcomeStatuses.map(s => (
+            <Bar key={s} label={s} max={maxOutcome} value={filtered.filter(w => w.submission_status === s).length}
+              onClick={() => goFiltered({ status: s })} />
+          ))}
         </div>
       </div>
 
@@ -150,7 +173,7 @@ export default function Reports() {
           {departments.map(d => {
             const deptWorks = filtered.filter(w => w.department === d.name || (w.departments || []).includes(d.name))
             const withQuality = deptWorks.filter(w => w.venue_quality).length
-            return <Bar key={d.id} label={d.name} max={maxQuality} value={withQuality} />
+            return <Bar key={d.id} label={d.name} max={maxQuality} value={withQuality} onClick={() => goFiltered({ department: d.name })} />
           })}
         </div>
         <div className="card">
@@ -176,8 +199,8 @@ export default function Reports() {
             <table>
               <thead><tr><th>Title</th><th>Department</th><th>Value</th></tr></thead>
               <tbody>{customRows.map(w => (
-                <tr key={w.id}>
-                  <td className="font-semibold">{w.title}</td><td>{w.department}</td>
+                <tr key={w.id} className="cursor-pointer hover:bg-slate-50" onClick={() => nav(`/pipeline/${w.id}`)}>
+                  <td className="font-semibold text-brand">{w.title}</td><td>{w.department}</td>
                   <td>{(w.custom_fields || []).find(cf => cf.label === customLabel)?.value || '—'}</td>
                 </tr>
               ))}</tbody>
@@ -192,8 +215,8 @@ export default function Reports() {
           <thead><tr><th>Title</th><th>Department</th><th>Lead</th><th>Venue</th><th>Quality</th><th>Status</th><th>Year</th></tr></thead>
           <tbody>
             {filtered.map(w => (
-              <tr key={w.id}>
-                <td className="font-semibold">{w.title}</td><td>{w.department}</td><td>{w.lead}</td>
+              <tr key={w.id} className="cursor-pointer hover:bg-slate-50" onClick={() => nav(`/pipeline/${w.id}`)}>
+                <td className="font-semibold text-brand">{w.title}</td><td>{w.department}</td><td>{w.lead}</td>
                 <td>{w.venue || '—'}</td><td>{w.venue_quality || '—'}</td>
                 <td><span className={`badge ${badgeClass(w.submission_status)}`}>{w.submission_status}</span></td>
                 <td>{w.academic_year || '—'}</td>

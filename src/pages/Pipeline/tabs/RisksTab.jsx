@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
+import FileList from '../../../components/FileList'
 
 export default function RisksTab({ work, risks, canEdit, onReload }) {
   async function addRisk() {
@@ -33,6 +34,7 @@ export default function RisksTab({ work, risks, canEdit, onReload }) {
               <div>
                 <strong className="text-sm">{r.type}: {r.title || r.description}</strong>
                 <div className="text-xs text-slate-400">{r.impact} impact · {r.action || 'No action logged'}</div>
+                <FileList entityType="risk" entityId={r.id} canEdit={canEdit} />
               </div>
               <div className="flex items-center gap-2">
                 <span className={`badge ${badgeClass(r.status)}`}>{r.status}</span>
