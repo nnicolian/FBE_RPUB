@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { badgeClass } from '../../lib/health'
 import { useAuth } from '../../context/AuthContext'
-import { canManageWork } from '../../lib/roles'
+import { canManageWork, canCreateWork } from '../../lib/roles'
 import PageHeader from '../../components/PageHeader'
 
 const EMPTY_WORK = {
@@ -83,7 +83,7 @@ export default function PipelineList() {
     (!filters.maturity || (w.research_maturity || 'Not Classified') === filters.maturity)
   )
 
-  const canCreate = profile?.role === 'admin' || profile?.role === 'chair'
+  const canCreate = canCreateWork(profile)
 
   return (
     <div className="space-y-4">

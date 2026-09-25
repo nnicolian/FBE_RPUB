@@ -31,7 +31,7 @@ export default function App() {
         <ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>
       } />
       <Route path="/admin" element={
-        <ProtectedRoute roles={['admin', 'dean']}><Layout><AdminHome /></Layout></ProtectedRoute>
+        <ProtectedRoute roles={['admin', 'research_admin', 'dean']}><Layout><AdminHome /></Layout></ProtectedRoute>
       } />
     </Routes>
   )

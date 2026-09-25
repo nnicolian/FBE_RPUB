@@ -6,10 +6,17 @@ import Targets from './Targets'
 import VenuesFull from './VenuesFull'
 import LifecycleTemplate from './LifecycleTemplate'
 import PageHeader from '../../components/PageHeader'
+import { useAuth } from '../../context/AuthContext'
+import { canManageAdmin, canManageSettings } from '../../lib/roles'
 
-const TABS = ['Users & Roles', 'Departments', 'Researchers', 'Venues', 'Academic Years', 'Committee', 'Acceptance Targets', 'Oversight Settings', 'Lifecycle Template']
+const ALL_TABS = ['Users & Roles', 'Departments', 'Researchers', 'Venues', 'Academic Years', 'Committee', 'Acceptance Targets', 'Oversight Settings', 'Lifecycle Template']
+// Research Admins get every tab except users; Deans only the research-content tabs.
+const SETTINGS_TABS = ALL_TABS.filter(t => t !== 'Users & Roles')
+const DEAN_TABS = ['Researchers', 'Venues', 'Acceptance Targets']
 
 export default function AdminHome() {
+  const { profile } = useAuth()
+  const TABS = canManageAdmin(profile) ? ALL_TABS : canManageSettings(profile) ? SETTINGS_TABS : DEAN_TABS
   const [tab, setTab] = useState(TABS[0])
 
   return (

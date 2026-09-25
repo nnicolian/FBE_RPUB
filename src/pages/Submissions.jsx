@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { badgeClass } from '../lib/health'
 import { useAuth } from '../context/AuthContext'
-import { canDecideSubmissions } from '../lib/roles'
+import { canDecideSubmissions, canEditSubmissionDraft } from '../lib/roles'
 import PageHeader from '../components/PageHeader'
 
 function acceptedCounts(works, dept) {
@@ -89,7 +89,7 @@ export default function Submissions() {
   }
 
   const canDecide = canDecideSubmissions(profile)
-  const canPrep = row => profile?.role === 'admin' || (profile?.role === 'chair' && profile.department === row.department)
+  const canPrep = row => canEditSubmissionDraft(profile, row.department)
 
   return (
     <div className="space-y-4">
