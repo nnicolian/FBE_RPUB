@@ -19,9 +19,9 @@ export function hasFullContentAccess(profile) {
   return ['admin', 'research_admin', 'dean'].includes(profile?.role)
 }
 
-// Admin and Research Admin manage system settings; only Admin manages users.
+// Configuration (users, master data, settings) is admin-only.
 export function canManageSettings(profile) {
-  return profile?.role === 'admin' || profile?.role === 'research_admin'
+  return profile?.role === 'admin'
 }
 
 export function canCreateWork(profile) {

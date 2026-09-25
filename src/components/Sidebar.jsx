@@ -9,7 +9,7 @@ const LINKS = [
   { to: '/pipeline', label: 'Research Pipeline', icon: '📚', roles: null },
   { to: '/submissions', label: 'Submissions', icon: '📤', roles: null },
   { to: '/reports', label: 'Reports', icon: '📈', roles: null },
-  { to: '/admin', label: 'Configuration', icon: '⚙️', roles: ['admin', 'research_admin', 'dean'] }
+  { to: '/admin', label: 'Configuration', icon: '⚙️', roles: ['admin'] }
 ]
 
 export default function Sidebar() {

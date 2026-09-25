@@ -24,6 +24,10 @@ export default function PipelineList() {
   })
   const [showNew, setShowNew] = useState(false)
   const [draft, setDraft] = useState(EMPTY_WORK)
+  // 'template' = Configuration → Lifecycle Template, 'none' = start empty, otherwise a work id to copy from
+  const [hierarchySource, setHierarchySource] = useState('template')
+  const [createError, setCreateError] = useState(null)
+  const [creating, setCreating] = useState(false)
   const [years, setYears] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -46,15 +50,30 @@ export default function PipelineList() {
   }
 
   async function createWork() {
-    if (!draft.title || !draft.department) return
+    if (!draft.title || !draft.department) { setCreateError('Enter a title and choose a department.'); return }
+    setCreating(true); setCreateError(null)
     const { data, error } = await supabase.from('works').insert({
       ...draft, departments: [draft.department], created_by: profile?.id
     }).select().single()
-    if (error) return
+    if (error) { setCreating(false); setCreateError(error.message); return }
+
+    if (hierarchySource !== 'template' && hierarchySource !== 'none') {
+      // Copy phases → tasks → subtasks from another paper (fresh statuses and dates).
+      const { error: copyErr } = await supabase.rpc('copy_work_hierarchy', {
+        p_source_work: hierarchySource, p_target_work: data.id, p_owner: draft.lead || ''
+      })
+      if (copyErr) {
+        setCreating(false)
+        setCreateError(`The paper was created, but its hierarchy couldn't be copied: ${copyErr.message}`)
+        return
+      }
+    }
 
     // Apply the lifecycle template so the new paper starts with its standard phases,
     // matching the prototype's behavior instead of leaving Hierarchy empty.
-    const { data: lt } = await supabase.from('lifecycle_template').select('template').single()
+    const { data: lt } = hierarchySource === 'template'
+      ? await supabase.from('lifecycle_template').select('template').single()
+      : { data: null }
     const template = Array.isArray(lt?.template) && lt.template.length ? lt.template : null
     if (template) {
       for (let i = 0; i < template.length; i++) {
@@ -70,7 +89,8 @@ export default function PipelineList() {
       }
     }
 
-    setShowNew(false); setDraft(EMPTY_WORK)
+    setCreating(false)
+    setShowNew(false); setDraft(EMPTY_WORK); setHierarchySource('template')
     nav(`/pipeline/${data.id}`)
   }
 
@@ -158,10 +178,25 @@ export default function PipelineList() {
               </select>
             </div>
           </div>
-          <p className="text-xs text-slate-400">The standard research lifecycle (phases and tasks) will be added automatically — edit Configuration → Lifecycle Template to change what gets applied.</p>
+          <div>
+            <label>Lifecycle hierarchy (phases, tasks and subtasks)</label>
+            <select value={hierarchySource} onChange={e => setHierarchySource(e.target.value)}>
+              <option value="template">Standard lifecycle template</option>
+              <optgroup label="Copy from another paper">
+                {works.map(w => <option key={w.id} value={w.id}>{w.title}{w.department ? ` — ${w.department}` : ''}</option>)}
+              </optgroup>
+              <option value="none">Start empty</option>
+            </select>
+            <p className="text-xs text-slate-400 mt-1">
+              {hierarchySource === 'template' ? 'Uses Configuration → Lifecycle Template.'
+                : hierarchySource === 'none' ? 'No phases are added; you can build the hierarchy yourself.'
+                : "Copies that paper's phases, tasks and subtasks with their names and instructions. Statuses, progress, dates and committee decisions start fresh, and task owners are set to the lead researcher."}
+            </p>
+          </div>
+          {createError && <p className="text-sm text-rose-600">{createError}</p>}
           <div className="flex gap-2">
-            <button className="btn btn-blue" onClick={createWork}>Create</button>
-            <button className="btn btn-ghost" onClick={() => setShowNew(false)}>Cancel</button>
+            <button className="btn btn-blue" disabled={creating} onClick={createWork}>{creating ? 'Creating…' : 'Create'}</button>
+            <button className="btn btn-ghost" onClick={() => { setShowNew(false); setCreateError(null) }}>Cancel</button>
           </div>
         </div>
       )}

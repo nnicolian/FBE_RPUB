@@ -136,3 +136,56 @@ begin
     execute format('create policy "research admin all" on public.%I for all to authenticated using (public.my_role() = ''research_admin''::user_role) with check (public.my_role() = ''research_admin''::user_role)', t);
   end loop;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- (Added 2026-09-25) Configuration is admin-only, and papers can copy another
+-- paper's lifecycle hierarchy when created.
+-- ---------------------------------------------------------------------------
+do $$
+declare t text;
+begin
+  foreach t in array array['researchers','venues','acceptance_targets','academic_years','departments',
+                           'committee_members','lifecycle_template','oversight_settings']
+  loop
+    execute format('drop policy if exists "dean write all" on public.%I', t);
+    execute format('drop policy if exists "research admin all" on public.%I', t);
+  end loop;
+end $$;
+drop policy if exists "researchers write" on public.researchers;
+create policy "researchers write" on public.researchers for all to authenticated
+  using (public.my_role() = 'admin'::user_role) with check (public.my_role() = 'admin'::user_role);
+drop policy if exists "venues write" on public.venues;
+create policy "venues write" on public.venues for all to authenticated
+  using (public.my_role() = 'admin'::user_role) with check (public.my_role() = 'admin'::user_role);
+drop policy if exists "targets write" on public.acceptance_targets;
+create policy "targets write" on public.acceptance_targets for all to authenticated
+  using (public.my_role() = 'admin'::user_role) with check (public.my_role() = 'admin'::user_role);
+
+create or replace function public.copy_work_hierarchy(p_source_work uuid, p_target_work uuid, p_owner text default '')
+returns integer language plpgsql security invoker set search_path = public as $$
+declare ph record; tk record; new_phase uuid; new_task uuid; n int := 0; first_seq int;
+begin
+  if p_source_work = p_target_work then raise exception 'Choose a different paper to copy from.'; end if;
+  if exists (select 1 from phases where work_id = p_target_work) then
+    raise exception 'This paper already has a hierarchy.';
+  end if;
+  select min(seq) into first_seq from phases where work_id = p_source_work;
+  for ph in select * from phases where work_id = p_source_work order by seq, name loop
+    insert into phases (work_id, name, seq, optional, committee_required, status, comments, committee_status)
+    values (p_target_work, ph.name, ph.seq, ph.optional, ph.committee_required,
+            case when ph.seq = first_seq then 'In Progress' else 'Not Started' end::item_status,
+            ph.comments, case when ph.committee_required then 'Pending' else 'Optional / Not Requested' end)
+    returning id into new_phase;
+    n := n + 1;
+    for tk in select * from tasks where phase_id = ph.id order by seq, name loop
+      insert into tasks (phase_id, name, seq, owner, comments)
+      values (new_phase, tk.name, tk.seq, coalesce(p_owner, ''), tk.comments)
+      returning id into new_task;
+      insert into subtasks (task_id, name, seq, owner, comments)
+      select new_task, s.name, s.seq, coalesce(p_owner, ''), s.comments from subtasks s where s.task_id = tk.id order by s.seq, s.name;
+    end loop;
+  end loop;
+  return n;
+end $$;
+revoke execute on function public.copy_work_hierarchy(uuid, uuid, text) from public, anon;
+grant execute on function public.copy_work_hierarchy(uuid, uuid, text) to authenticated;
