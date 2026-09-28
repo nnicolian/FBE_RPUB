@@ -63,10 +63,12 @@ export default function WorkDetail() {
   const canEdit = canManageWork(profile, work)
   const health = deriveHealth(work, { phases, milestones, risks, updates }, null)
 
+  // Returns false when the save failed, so edit forms can stay open.
   async function patchWork(fields) {
     const { error } = await supabase.from('works').update(fields).eq('id', work.id)
     if (!error) setWork(w => ({ ...w, ...fields }))
-    showToast(error ? 'Could not save' : 'Saved', error ? 'error' : 'success')
+    showToast(error ? `Could not save: ${error.message}` : 'Saved', error ? 'error' : 'success')
+    return !error
   }
 
   async function deleteWork() {

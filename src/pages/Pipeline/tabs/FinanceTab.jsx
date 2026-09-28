@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import RecordEditor from '../../../components/RecordEditor'
+import { useToast } from '../../../context/ToastContext'
 import { supabase } from '../../../lib/supabaseClient'
 import FileList from '../../../components/FileList'
 
@@ -6,6 +8,14 @@ function money(v) { return Number(v || 0).toLocaleString(undefined, { minimumFra
 
 export default function FinanceTab({ work, costEntries, canEdit, onPatch, onReload }) {
   const [editingFunding, setEditingFunding] = useState(false)
+  const { showToast } = useToast()
+  const [editingId, setEditingId] = useState(null)
+  async function saveRow(table, id, fields) {
+    const { error } = await supabase.from(table).update(fields).eq('id', id)
+    showToast(error ? `Could not save: ${error.message}` : 'Saved', error ? 'error' : 'success')
+    if (!error) { setEditingId(null); onReload() }
+    return !error
+  }
   const funding = work.funding || { funderName: '', grantReference: '', amountReceived: 0 }
   const [draft, setDraft] = useState(funding)
 
@@ -70,11 +80,17 @@ export default function FinanceTab({ work, costEntries, canEdit, onPatch, onRelo
           <table>
             <thead><tr><th>Description</th><th>Date</th><th>Amount</th><th>Proof of Payment</th>{canEdit && <th></th>}</tr></thead>
             <tbody>
-              {costEntries.map(c => (
+              {costEntries.map(c => editingId === c.id ? (
+                <tr key={c.id}><td colSpan={canEdit ? 5 : 4}>
+                  <RecordEditor record={c} onCancel={() => setEditingId(null)} onSave={f => saveRow('cost_entries', c.id, f)}
+                    fields={[{ key: 'description', label: 'Description', required: true, wide: true }, { key: 'entry_date', label: 'Date', type: 'date' },
+                      { key: 'amount', label: 'Amount', type: 'number', min: 0 }]} />
+                </td></tr>
+              ) : (
                 <tr key={c.id}>
                   <td>{c.description}</td><td>{c.entry_date || '—'}</td><td className="font-semibold">{money(c.amount)}</td>
                   <td><FileList entityType="cost_entry" entityId={c.id} canEdit={canEdit} /></td>
-                  {canEdit && <td><button className="text-xs text-rose-500" onClick={() => removeCost(c.id)}>Delete</button></td>}
+                  {canEdit && <td className="whitespace-nowrap"><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(c.id)}>✎ Edit</button> <button className="text-xs text-rose-500 ml-1" onClick={() => removeCost(c.id)}>Delete</button></td>}
                 </tr>
               ))}
             </tbody>
