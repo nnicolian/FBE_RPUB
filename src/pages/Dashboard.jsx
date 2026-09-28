@@ -15,7 +15,7 @@ function Bar({ label, value, max, onClick }) {
 }
 
 const MATURITY_LEVELS = ['Not Classified', 'Idea', 'Work in Progress', 'Conference-ready', 'Extended-publication-ready', 'Journal-ready']
-const MAJOR_STAGES = ['Onboarding', 'Execution', 'Submission', 'Accepted']
+const MAJOR_STAGES = ['Initiation', 'Execution', 'Submission', 'Accepted']
 
 export default function Dashboard() {
   const nav = useNavigate()

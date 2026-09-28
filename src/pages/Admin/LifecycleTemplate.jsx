@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 
 const DEFAULT_TEMPLATE = [
-  { id: 'p1', name: '1. Onboarding', optional: false, committeeRequired: true, instructions: '',
+  { id: 'p1', name: '1. Initiation', optional: false, committeeRequired: true, instructions: '',
     tasks: [{ id: 't1', name: 'Chair or Committee Referral', instructions: '', subtasks: [] }] },
   { id: 'p2', name: '2. Execution', optional: false, committeeRequired: true, instructions: '', tasks: [] },
   { id: 'p3', name: '3. Advisory Review', optional: true, committeeRequired: false, instructions: '', tasks: [] },

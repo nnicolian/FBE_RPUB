@@ -175,7 +175,7 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
 
       <div className="note text-xs">
         <strong>Governance:</strong> Chair/committee referral and lead assignment begin the work. Venue should meet the
-        university floor (Scopus; Q1–Q4 count; preferably ABS/AJG 1*+). Default path is Onboarding → Execution → Submission.
+        university floor (Scopus; Q1–Q4 count; preferably ABS/AJG 1*+). Default path is Initiation → Execution → Submission.
         Advisory Review is optional. Submission = 100% completion; Under Review / R&R / Accepted remain outcome/status words.
       </div>
     </div>

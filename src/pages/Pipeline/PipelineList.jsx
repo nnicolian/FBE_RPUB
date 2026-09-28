@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { badgeClass } from '../../lib/health'
 import { useAuth } from '../../context/AuthContext'
 import { canManageWork, canCreateWork } from '../../lib/roles'
+import { STAGES } from '../../lib/workOptions'
 import PageHeader from '../../components/PageHeader'
 
 const EMPTY_WORK = {
@@ -124,7 +125,7 @@ export default function PipelineList() {
         </select>
         <select className="!w-48" value={filters.stage} onChange={e => setFilters(f => ({ ...f, stage: e.target.value }))}>
           <option value="">All stages</option>
-          {['Onboarding', 'Execution', 'Advisory Review', 'Submission', 'Under Review', 'R&R', 'Accepted', 'Published'].map(s =>
+          {STAGES.map(s =>
             <option key={s} value={s}>{s}</option>)}
         </select>
         {(filters.lead || filters.maturity) && (

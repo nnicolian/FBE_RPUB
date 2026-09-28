@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { badgeClass } from '../lib/health'
+import { STAGES } from '../lib/workOptions'
 import PageHeader from '../components/PageHeader'
 
 function toCsv(rows) {
@@ -25,7 +26,6 @@ function Bar({ label, value, max, onClick }) {
 function money(v) { return Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 
 const MATURITY_LEVELS = ['Not Classified', 'Idea', 'Work in Progress', 'Conference-ready', 'Extended-publication-ready', 'Journal-ready']
-const STAGES = ['Onboarding', 'Execution', 'Advisory Review', 'Submission', 'Under Review', 'R&R', 'Accepted', 'Published']
 
 export default function Reports() {
   const nav = useNavigate()
