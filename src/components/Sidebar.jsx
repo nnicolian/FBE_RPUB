@@ -41,6 +41,8 @@ export default function Sidebar() {
         <div className="text-white/60">{ROLE_LABELS[profile?.role] || '—'}{profile?.department ? ` · ${profile.department}` : ''}</div>
         <button onClick={() => setShowChangePw(true)} className="mt-3 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Change Password</button>
         <button onClick={signOut} className="mt-2 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Sign out</button>
+        {/* Bump this label with each release to confirm the live site is up to date. */}
+        <div className="mt-3 text-[10px] text-white/40 text-center">Version 2026-09-25 · Config admin-only</div>
       </div>
       {showChangePw && <ChangePasswordModal onClose={() => setShowChangePw(false)} />}
     </aside>
