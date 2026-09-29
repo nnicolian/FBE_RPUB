@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { badgeClass } from '../../lib/health'
 import { useAuth } from '../../context/AuthContext'
-import { canManageWork, canCreateWork } from '../../lib/roles'
+import { canCreateWork, canSeeAllWorks } from '../../lib/roles'
 import { STAGES } from '../../lib/workOptions'
 import PageHeader from '../../components/PageHeader'
 
@@ -70,8 +70,8 @@ export default function PipelineList() {
       }
     }
 
-    // Apply the lifecycle template so the new paper starts with its standard phases,
-    // matching the prototype's behavior instead of leaving Hierarchy empty.
+    // Apply the lifecycle template: the 4 phases and their sub-tasks, each sub-task
+    // carrying its "What 100% looks like" guidance. Progress rolls up automatically.
     const { data: lt } = hierarchySource === 'template'
       ? await supabase.from('lifecycle_template').select('template').single()
       : { data: null }
@@ -79,14 +79,16 @@ export default function PipelineList() {
     if (template) {
       for (let i = 0; i < template.length; i++) {
         const p = template[i]
-        const { data: phase } = await supabase.from('phases').insert({
+        const { data: phase, error: phErr } = await supabase.from('phases').insert({
           work_id: data.id, name: p.name, seq: i, optional: !!p.optional,
-          committee_required: !!p.committeeRequired, status: i === 0 ? 'In Progress' : 'Not Started',
-          comments: p.instructions || '', committee_status: p.committeeRequired ? 'Pending' : 'Optional / Not Requested'
+          committee_required: false, committee_status: 'Optional / Not Requested',
+          status: 'Not Started', comments: p.instructions || ''
         }).select().single()
-        for (const t of (p.tasks || [])) {
-          await supabase.from('tasks').insert({ phase_id: phase.id, name: t.name, owner: draft.lead, comments: t.instructions || '' })
-        }
+        if (phErr) { setCreating(false); setCreateError(`The paper was created, but its phases couldn't be added: ${phErr.message}`); return }
+        const tasks = (p.tasks || []).map((t, j) => ({
+          phase_id: phase.id, name: t.name, seq: j, owner: draft.lead || '', guidance: t.instructions || '', comments: ''
+        }))
+        if (tasks.length) await supabase.from('tasks').insert(tasks)
       }
     }
 
@@ -108,7 +110,7 @@ export default function PipelineList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="📚" title="Research Pipeline" subtitle="All research outputs in progress or completed."
+      <PageHeader icon="📚" title="Research Pipeline" subtitle={canSeeAllWorks(profile) ? "All research outputs in progress or completed." : profile?.role === 'chair' ? `Papers in ${profile.department || 'your department'} and papers you author.` : "Your papers — the ones you lead or co-author."}
         action={canCreate && <button className="btn btn-blue" onClick={() => setShowNew(true)}>+ New Work</button>} />
 
       <div className="card flex flex-wrap gap-3 items-center">
@@ -124,7 +126,7 @@ export default function PipelineList() {
             <option key={s} value={s}>{s}</option>)}
         </select>
         <select className="!w-48" value={filters.stage} onChange={e => setFilters(f => ({ ...f, stage: e.target.value }))}>
-          <option value="">All stages</option>
+          <option value="">All phases</option>
           {STAGES.map(s =>
             <option key={s} value={s}>{s}</option>)}
         </select>
@@ -180,7 +182,7 @@ export default function PipelineList() {
             </div>
           </div>
           <div>
-            <label>Lifecycle hierarchy (phases, tasks and subtasks)</label>
+            <label>Pipeline (phases and sub-tasks)</label>
             <select value={hierarchySource} onChange={e => setHierarchySource(e.target.value)}>
               <option value="template">Standard lifecycle template</option>
               <optgroup label="Copy from another paper">
@@ -189,9 +191,9 @@ export default function PipelineList() {
               <option value="none">Start empty</option>
             </select>
             <p className="text-xs text-slate-400 mt-1">
-              {hierarchySource === 'template' ? 'Uses Configuration → Lifecycle Template.'
+              {hierarchySource === 'template' ? 'The Faculty 4-phase pipeline: Initiate → Build → Refine → Publish (Configuration → Lifecycle Template).'
                 : hierarchySource === 'none' ? 'No phases are added; you can build the hierarchy yourself.'
-                : "Copies that paper's phases, tasks and subtasks with their names and instructions. Statuses, progress, dates and committee decisions start fresh, and task owners are set to the lead researcher."}
+                : "Copies that paper's phases and sub-tasks with their names and guidance. Progress and dates start fresh, and owners are set to the lead researcher."}
             </p>
           </div>
           {createError && <p className="text-sm text-rose-600">{createError}</p>}
@@ -205,19 +207,20 @@ export default function PipelineList() {
       <div className="card">
         {loading ? <p className="text-slate-400 text-sm">Loading…</p> : (
           <table>
-            <thead><tr><th>Title</th><th>Department</th><th>Lead</th><th>Venue</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Title</th><th>Department</th><th>Lead</th><th>Phase</th><th>Venue</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {filtered.map(w => (
                 <tr key={w.id}>
                   <td className="font-semibold"><button className="text-brand hover:underline text-left" onClick={() => nav(`/pipeline/${w.id}`)}>{w.title}</button></td>
                   <td>{w.department}</td>
                   <td>{w.lead}</td>
+                  <td>{w.stage || '—'}</td>
                   <td>{w.venue || '—'}</td>
                   <td><span className={`badge ${badgeClass(w.submission_status)}`}>{w.submission_status}</span></td>
                   <td><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => nav(`/pipeline/${w.id}`)}>Open</button></td>
                 </tr>
               ))}
-              {filtered.length === 0 && <tr><td colSpan={6} className="text-center text-slate-400 py-6">No works match these filters.</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={7} className="text-center text-slate-400 py-6">No works match these filters.</td></tr>}
             </tbody>
           </table>
         )}

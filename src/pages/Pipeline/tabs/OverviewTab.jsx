@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
-import { RESEARCH_TYPES, MATURITY_LEVELS, STAGES, ETHICS } from '../../../lib/workOptions'
+import { RESEARCH_TYPES, MATURITY_LEVELS, ETHICS } from '../../../lib/workOptions'
 import FileList from '../../../components/FileList'
 
 // Keeps the current value selectable even if it isn't in the standard list.
@@ -14,7 +14,6 @@ function draftFrom(work) {
     research_maturity: work.research_maturity || 'Not Classified',
     department: work.department || '',
     collaborating: (work.departments || []).filter(d => d !== work.department),
-    stage: work.stage || '',
     ethics: work.ethics || 'N/A',
     lead: work.lead || '',
     corresponding: work.corresponding || '',
@@ -44,7 +43,7 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
     const ok = await onPatch({
       title: draft.title.trim(), research_type: draft.research_type, research_maturity: draft.research_maturity,
       department: draft.department, departments: [draft.department, ...collab],
-      stage: draft.stage || null, ethics: draft.ethics, lead: draft.lead, corresponding: draft.corresponding,
+      ethics: draft.ethics, lead: draft.lead, corresponding: draft.corresponding,
       venue: draft.venue, manuscript_id: draft.manuscript_id,
       custom_fields: draft.custom_fields.filter(cf => cf.label.trim() || cf.value.trim())
     })
@@ -56,7 +55,7 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
     ['Research Maturity', work.research_maturity || 'Not Classified'],
     ['Primary Department', work.department],
     ['Collaborating Departments', (work.departments || []).filter(d => d !== work.department).join(', ') || '—'],
-    ['Major Stage', work.stage || '—'],
+    ['Pipeline Phase (automatic)', work.stage || '—'],
     ['Ethics Status', work.ethics || 'N/A'],
     ['Lead / Primary Author', work.lead || '—'],
     ['Corresponding Author', work.corresponding || '—'],
@@ -99,11 +98,8 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
                 <select value={draft.research_maturity} onChange={e => set('research_maturity', e.target.value)}>
                   {withCurrent(MATURITY_LEVELS, draft.research_maturity).map(t => <option key={t}>{t}</option>)}
                 </select></div>
-              <div><label>Major Stage</label>
-                <select value={draft.stage} onChange={e => set('stage', e.target.value)}>
-                  <option value="">—</option>
-                  {withCurrent(STAGES, draft.stage).map(t => <option key={t}>{t}</option>)}
-                </select></div>
+              <div><label>Pipeline Phase</label>
+                <input value={work.stage || '—'} disabled title="Set automatically from sub-task progress" /></div>
               <div><label>Primary Department</label>
                 <select value={draft.department} onChange={e => set('department', e.target.value)}>
                   <option value="">— Choose —</option>
@@ -174,9 +170,10 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
       )}
 
       <div className="note text-xs">
-        <strong>Governance:</strong> Chair/committee referral and lead assignment begin the work. Venue should meet the
-        university floor (Scopus; Q1–Q4 count; preferably ABS/AJG 1*+). Default path is Initiation → Execution → Submission.
-        Advisory Review is optional. Submission = 100% completion; Under Review / R&R / Accepted remain outcome/status words.
+        <strong>How tracking works:</strong> every paper moves through Initiate → Build → Refine → Publish.
+        Authors (or the supervisor, for MS papers) set a percentage per sub-task; each phase's milestone completes
+        automatically at 100%, with no submissions or approvals. Target venues must be Scopus-indexed, with Q1–Q2 and
+        ABS 2* or above preferred. The Research Coordinator reaches out when a paper hasn't moved for 30 days.
       </div>
     </div>
   )

@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 
 const FIELDS = [
-  { key: 'stale_days', label: 'Days before an update is considered stale' },
+  { key: 'stale_days', label: 'Days without movement before a paper is flagged (plan: 30)' },
   { key: 'severe_overdue_days', label: 'Days overdue before a milestone is "severely" overdue' },
-  { key: 'committee_pending_days', label: 'Days before a pending committee review is flagged' },
   { key: 'under_review_days', label: 'Days under external review before flagged as extended' }
 ]
 
@@ -26,7 +25,7 @@ export default function Settings() {
   return (
     <div className="card space-y-3 max-w-lg">
       <h3 className="font-bold">Oversight Settings</h3>
-      <p className="text-xs text-slate-500">These thresholds drive the Green / Amber / Red health status and notifications across the pipeline.</p>
+      <p className="text-xs text-slate-500">These thresholds drive the Green / Amber / Red health status across the pipeline.</p>
       {FIELDS.map(f => (
         <div key={f.key}>
           <label>{f.label}</label>

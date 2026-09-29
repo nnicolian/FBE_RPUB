@@ -122,7 +122,7 @@ export default function Reports() {
           ))}
         </div>
         <div className="card">
-          <h3 className="font-bold mb-2">Research by Stage</h3>
+          <h3 className="font-bold mb-2">Research by Pipeline Phase</h3>
           {STAGES.map(s => (
             <Bar key={s} label={s} max={maxStage} value={filtered.filter(w => w.stage === s).length}
               onClick={() => goFiltered({ stage: s })} />

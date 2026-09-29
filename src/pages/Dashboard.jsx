@@ -15,7 +15,7 @@ function Bar({ label, value, max, onClick }) {
 }
 
 const MATURITY_LEVELS = ['Not Classified', 'Idea', 'Work in Progress', 'Conference-ready', 'Extended-publication-ready', 'Journal-ready']
-const MAJOR_STAGES = ['Initiation', 'Execution', 'Submission', 'Accepted']
+const MAJOR_STAGES = ['Initiate', 'Build', 'Refine', 'Publish']
 
 export default function Dashboard() {
   const nav = useNavigate()
@@ -91,7 +91,7 @@ export default function Dashboard() {
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="card">
-          <h3 className="font-bold mb-2">Pipeline by Major Stage</h3>
+          <h3 className="font-bold mb-2">Pipeline by Phase</h3>
           <div className="grid grid-cols-2 gap-2">
             {MAJOR_STAGES.map(s => (
               <div key={s} className="bg-slate-50 border border-slate-200 rounded-lg p-2 cursor-pointer" onClick={() => goFiltered({ stage: s })}>

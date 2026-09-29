@@ -1,22 +1,34 @@
-// Central place for role logic so permission rules stay in one file
-// (mirrors the RLS policies in supabase/migrations/0002_rls.sql —
-// the DB is the real gatekeeper, this just drives the UI).
+// Central place for role logic so permission rules stay in one file.
+// The database (row-level security) is the real gatekeeper; this just drives the UI.
+//
+// Access model (Research Strategy §5 "Role-Based Access"):
+//   admin           – full access, including Configuration and user accounts
+//   research_admin  – Research Coordinator: sees and edits every paper, no user management
+//   dean            – read-only oversight of every paper
+//   chair           – sees and edits their department's papers (and papers they author)
+//   author          – sees and edits only their own papers
+// A paper is "yours" when you created it or your linked researcher name is its lead or a co-author.
 
-export const ROLES = ['admin', 'research_admin', 'dean', 'chair', 'committee', 'viewer']
+export const ROLES = ['admin', 'research_admin', 'dean', 'chair', 'author']
 
 export const ROLE_LABELS = {
-  admin: 'Research Office Admin',
-  research_admin: 'Research Admin (no user management)',
-  dean: 'Dean / Faculty-wide',
+  admin: 'Administrator',
+  research_admin: 'Research Coordinator',
+  dean: 'Dean (read-only oversight)',
   chair: 'Department Chair',
-  committee: 'Research Committee',
-  viewer: 'Viewer'
+  author: 'Author (own papers)',
+  committee: 'Research Committee (retired)',
+  viewer: 'No access'
 }
 
-// Admin and Dean can read and write all research content in every department.
-// Only Admin manages users and system settings.
+// Admin and the Research Coordinator can edit research content in every department.
 export function hasFullContentAccess(profile) {
-  return ['admin', 'research_admin', 'dean'].includes(profile?.role)
+  return ['admin', 'research_admin'].includes(profile?.role)
+}
+
+// Can see every paper (the Dean sees all, read-only).
+export function canSeeAllWorks(profile) {
+  return hasFullContentAccess(profile) || profile?.role === 'dean'
 }
 
 // Configuration (users, master data, settings) is admin-only.
@@ -25,16 +37,20 @@ export function canManageSettings(profile) {
 }
 
 export function canCreateWork(profile) {
-  return hasFullContentAccess(profile) || profile?.role === 'chair'
+  return hasFullContentAccess(profile) || ['chair', 'author'].includes(profile?.role)
 }
 
+// UI hint only. The paper page asks the database (can_write_work) for the exact answer,
+// which also covers chairs editing papers they co-author in other departments.
 export function canManageWork(profile, work) {
   if (!profile) return false
   if (hasFullContentAccess(profile)) return true
   if (profile.role === 'chair') {
     const depts = [work?.department, ...(work?.departments || [])].filter(Boolean)
-    return depts.includes(profile.department)
+    return depts.includes(profile.department) || work?.created_by === profile.id
   }
+  // Authors can only ever load their own papers, so any paper they see is theirs.
+  if (profile.role === 'author') return true
   return false
 }
 
@@ -42,14 +58,13 @@ export function canManageAdmin(profile) {
   return profile?.role === 'admin'
 }
 
+// Retired with the move to self-reporting (kept so older screens still compile).
 export function canDecideSubmissions(profile) {
   return hasFullContentAccess(profile)
 }
-
 export function canReviewAsCommittee(profile) {
-  return hasFullContentAccess(profile) || profile?.role === 'committee'
+  return hasFullContentAccess(profile)
 }
-
-export function canEditSubmissionDraft(profile, department) {
-  return hasFullContentAccess(profile) || (profile?.department === department && profile?.role === 'chair')
+export function canEditSubmissionDraft(profile) {
+  return hasFullContentAccess(profile)
 }

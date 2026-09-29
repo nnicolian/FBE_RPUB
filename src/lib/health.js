@@ -12,17 +12,22 @@ export function overdueMilestones(milestones = []) {
   return milestones.filter(m => m.due && m.status !== 'Completed' && new Date(m.due) < now)
 }
 
+// Kept for compatibility; committee review is no longer used, so this is always empty.
 export function pendingCommitteeReviews(phases = []) {
   return phases.filter(p => p.committee_required && (p.committee_status || 'Pending') === 'Pending')
 }
 
+// The most recent sign of movement: a progress change on the pipeline or a written update.
 export function latestUpdateDate(work, updates = []) {
-  const dates = updates.map(u => u.update_date).filter(Boolean).sort()
+  const dates = [
+    ...updates.map(u => u.update_date),
+    work.last_progress_at ? String(work.last_progress_at).slice(0, 10) : null
+  ].filter(Boolean).sort()
   return dates.at(-1) || work.actual_submission || work.start_date || ''
 }
 
-export function deriveHealth(work, { phases = [], milestones = [], risks = [], updates = [] } = {}, settings) {
-  const s = settings || { stale_days: 21, severe_overdue_days: 14, committee_pending_days: 10, under_review_days: 120 }
+export function deriveHealth(work, { milestones = [], risks = [], updates = [] } = {}, settings) {
+  const s = settings || { stale_days: 30, severe_overdue_days: 14, under_review_days: 120 }
   const reasons = []
   const red = []
 
@@ -40,10 +45,11 @@ export function deriveHealth(work, { phases = [], milestones = [], risks = [], u
   }
   if (work.ethics === 'Pending') reasons.push('ethics status pending')
 
-  const active = !['Accepted', 'Published'].includes(work.submission_status)
+  // Stationary papers: the Coordinator reaches out after 30 days without movement (Appendix 6).
+  const active = !['Accepted', 'Published'].includes(work.submission_status) && work.stage !== 'Published'
   const stale = active ? daysFrom(latestUpdateDate(work, updates)) : 0
-  if (active && stale > s.stale_days) reasons.push(`${stale} days since last update`)
-  if (active && stale > s.stale_days * 2) red.push('seriously stale update')
+  if (active && stale > s.stale_days) reasons.push(`no movement for ${stale} days`)
+  if (active && stale > s.stale_days * 2) red.push('stationary for a long time')
 
   return { status: red.length ? 'Red' : reasons.length ? 'Amber' : 'Green', reasons }
 }
@@ -54,8 +60,7 @@ export function badgeClass(status) {
     Submitted: 'badge-purple', Resubmitted: 'badge-purple', 'Under Review': 'badge-purple',
     'Pre-Submission': 'badge-gray', 'R&R': 'badge-amber', Returned: 'badge-red',
     Green: 'badge-green', Amber: 'badge-amber', Red: 'badge-red',
-    Completed: 'badge-green', Blocked: 'badge-red', Blessed: 'badge-green',
-    'Changes Requested': 'badge-red', Pending: 'badge-amber'
+    Completed: 'badge-green', 'In Progress': 'badge-purple', Blocked: 'badge-red', Pending: 'badge-amber'
   }
   return map[status] || 'badge-gray'
 }

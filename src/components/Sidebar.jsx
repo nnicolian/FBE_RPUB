@@ -4,10 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { ROLE_LABELS } from '../lib/roles'
 import ChangePasswordModal from './ChangePasswordModal'
 
+// Department submissions were retired with the move to self-reporting (no approvals).
 const LINKS = [
   { to: '/', label: 'Dashboard', icon: '📊', roles: null },
   { to: '/pipeline', label: 'Research Pipeline', icon: '📚', roles: null },
-  { to: '/submissions', label: 'Submissions', icon: '📤', roles: null },
   { to: '/reports', label: 'Reports', icon: '📈', roles: null },
   { to: '/admin', label: 'Configuration', icon: '⚙️', roles: ['admin'] }
 ]
@@ -42,7 +42,7 @@ export default function Sidebar() {
         <button onClick={() => setShowChangePw(true)} className="mt-3 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Change Password</button>
         <button onClick={signOut} className="mt-2 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Sign out</button>
         {/* Bump this label with each release to confirm the live site is up to date. */}
-        <div className="mt-3 text-[10px] text-white/40 text-center">Version 2026-09-28 · Edit in all tabs</div>
+        <div className="mt-3 text-[10px] text-white/40 text-center">Version 2026-09-29 · 4-phase self-reporting</div>
       </div>
       {showChangePw && <ChangePasswordModal onClose={() => setShowChangePw(false)} />}
     </aside>
