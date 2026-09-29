@@ -8,13 +8,14 @@ import { useToast } from '../../context/ToastContext'
 // database functions (admin_create_user, admin_update_user, ...) that check
 // the caller is an admin, so nothing here needs a service key.
 
-const blankDraft = { email: '', full_name: '', password: '', role: 'dean', department: '' }
+const blankDraft = { email: '', full_name: '', password: '', role: 'author', department: '', researcher_id: '' }
 
 export default function Users() {
   const { profile: me } = useAuth()
   const { showToast } = useToast()
   const [users, setUsers] = useState([])
   const [departments, setDepartments] = useState([])
+  const [researchers, setResearchers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [draft, setDraft] = useState(blankDraft)
@@ -25,13 +26,15 @@ export default function Users() {
 
   async function load() {
     setLoading(true)
-    const [{ data: u, error: e }, { data: d }] = await Promise.all([
+    const [{ data: u, error: e }, { data: d }, { data: r }] = await Promise.all([
       supabase.rpc('admin_list_users'),
-      supabase.from('departments').select('*').eq('active', true).order('name')
+      supabase.from('departments').select('*').eq('active', true).order('name'),
+      supabase.from('researchers').select('id, name, profile_id').eq('active', true).order('name')
     ])
     if (e) setError(e.message)
     else { setUsers(u || []); setError(null) }
     setDepartments(d || [])
+    setResearchers(r || [])
     setLoading(false)
   }
 
@@ -50,10 +53,14 @@ export default function Users() {
     if (!draft.email.trim() || !draft.full_name.trim()) { showToast('Enter a name and email.', 'error'); return }
     if (draft.password.length < 8) { showToast('The password must be at least 8 characters.', 'error'); return }
     setBusy(true)
-    const { error: e } = await supabase.rpc('admin_create_user', {
+    const { data: newId, error: e } = await supabase.rpc('admin_create_user', {
       p_email: draft.email, p_password: draft.password, p_full_name: draft.full_name,
       p_role: draft.role, p_department: draft.department || null
     })
+    if (!e && newId && draft.researcher_id) {
+      // Link the login to the researcher name used on papers, so they see their own papers.
+      await supabase.from('researchers').update({ profile_id: newId }).eq('id', draft.researcher_id)
+    }
     setBusy(false)
     if (e) { showToast(e.message, 'error'); return }
     showToast(`Added ${draft.full_name}`)
@@ -78,6 +85,8 @@ export default function Users() {
   }
 
   const fmt = ts => ts ? new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'
+  const roleOptions = role => (role && !ROLES.includes(role) ? [role, ...ROLES] : ROLES)
+  const linkedName = id => researchers.find(r => r.profile_id === id)?.name
 
   return (
     <div className="card space-y-3">
@@ -85,9 +94,8 @@ export default function Users() {
         <div>
           <h3 className="font-bold">Users & Roles</h3>
           <p className="text-xs text-slate-500">
-            Add people, set their role and department, reset passwords, or deactivate accounts.
-            Deactivated users can't sign in. Deans can read and edit all research content;
-            only administrators manage users and settings.
+            Authors see and update their own papers; Chairs their department's papers; the Research Coordinator every paper;
+            the Dean has read-only oversight. Only administrators manage users and settings. Deactivated users can't sign in.
           </p>
         </div>
         {!adding && <button className="btn btn-blue whitespace-nowrap" onClick={() => setAdding(true)}>+ Add user</button>}
@@ -103,15 +111,19 @@ export default function Users() {
               {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
             </select>
             <select value={draft.department} onChange={e => setDraft(d => ({ ...d, department: e.target.value }))}>
-              <option value="">— No department —</option>
+              <option value="">— No department (needed for Chairs) —</option>
               {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+            </select>
+            <select value={draft.researcher_id} onChange={e => setDraft(d => ({ ...d, researcher_id: e.target.value }))}>
+              <option value="">— Link to researcher name (optional) —</option>
+              {researchers.filter(r => !r.profile_id).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
             <div className="flex gap-2">
               <button className="btn btn-blue" disabled={busy} onClick={addUser}>{busy ? 'Adding…' : 'Add'}</button>
               <button className="btn btn-ghost" onClick={() => { setAdding(false); setDraft(blankDraft) }}>Cancel</button>
             </div>
           </div>
-          <p className="text-xs text-slate-500">Share the temporary password with the person; they can change it after signing in.</p>
+          <p className="text-xs text-slate-500">Share the temporary password with the person; they can change it after signing in. Linking a researcher name lets them see papers where that name is lead, co-author or supervisor (you can also do this later in Researchers).</p>
         </div>
       )}
 
@@ -119,7 +131,7 @@ export default function Users() {
       {loading ? <p className="text-slate-400 text-sm">Loading…</p> : (
         <div className="overflow-x-auto">
           <table>
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Active</th><th>Last sign-in</th><th></th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Researcher</th><th>Active</th><th>Last sign-in</th><th></th></tr></thead>
             <tbody>
               {users.map(u => {
                 const isMe = u.id === me?.id
@@ -132,7 +144,7 @@ export default function Users() {
                     <td className="text-xs text-slate-500">{u.email}</td>
                     <td>
                       <select value={u.role} disabled={isMe} title={isMe ? "You can't change your own role" : ''} onChange={e => save(u, { role: e.target.value })}>
-                        {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+                        {roleOptions(u.role).map(r => <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>)}
                       </select>
                     </td>
                     <td>
@@ -141,6 +153,7 @@ export default function Users() {
                         {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                       </select>
                     </td>
+                    <td className="text-xs">{linkedName(u.id) || <span className="text-slate-400">—</span>}</td>
                     <td><input type="checkbox" checked={!!u.active} disabled={isMe} onChange={e => save(u, { active: e.target.checked })} /></td>
                     <td className="text-xs text-slate-500 whitespace-nowrap">{fmt(u.last_sign_in_at)}</td>
                     <td className="whitespace-nowrap">
@@ -150,7 +163,7 @@ export default function Users() {
                   </tr>
                 )
               })}
-              {users.length === 0 && <tr><td colSpan={7} className="text-center text-slate-400 py-4">No users yet.</td></tr>}
+              {users.length === 0 && <tr><td colSpan={8} className="text-center text-slate-400 py-4">No users yet.</td></tr>}
             </tbody>
           </table>
         </div>

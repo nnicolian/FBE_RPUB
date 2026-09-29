@@ -61,7 +61,7 @@ export default function ResearchersAdmin() {
           <div className="grid md:grid-cols-3 gap-3">
             <div><label>Name (as used on papers)</label><input value={d.name} onChange={e => set('name', e.target.value)} /></div>
             <div><label>Type</label><select value={d.type} onChange={e => set('type', e.target.value)}>{RESEARCHER_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select></div>
-            <div><label>Department</label><select value={d.department || ''} onChange={e => set('department', e.target.value)}><option value="">—</option>{departments.map(x => <option key={x}>{x}</option>)}</select></div>
+            <div><label>Department</label><select value={d.department || ''} onChange={e => set('department', e.target.value)}><option value="">—</option>{(d.department && !departments.includes(d.department) ? [d.department, ...departments] : departments).map(x => <option key={x}>{x}</option>)}</select></div>
             <div><label>Email</label><input value={d.email || ''} onChange={e => set('email', e.target.value)} /></div>
             <div>
               <label>Login (app account)</label>

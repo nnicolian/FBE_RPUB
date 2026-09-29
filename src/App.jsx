@@ -10,6 +10,7 @@ import Survey from './pages/Survey'
 import Library from './pages/Library'
 import Calendar from './pages/Calendar'
 import Committee from './pages/Committee'
+import Resources from './pages/Resources'
 import AdminHome from './pages/Admin/AdminHome'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -36,6 +37,9 @@ export default function App() {
       } />
       <Route path="/library" element={
         <ProtectedRoute><Layout><Library /></Layout></ProtectedRoute>
+      } />
+      <Route path="/resources" element={
+        <ProtectedRoute><Layout><Resources /></Layout></ProtectedRoute>
       } />
       <Route path="/calendar" element={
         <ProtectedRoute><Layout><Calendar /></Layout></ProtectedRoute>

@@ -68,7 +68,7 @@ export default function Login() {
           </button>
         )}
 
-        <p className="text-xs text-slate-400">Accounts are created by the Research Office admin and assigned a role (Chair, Committee, Dean, Viewer).</p>
+        <p className="text-xs text-slate-400">Accounts are created by the Faculty administrator. Part-time faculty: the research interest survey needs no account — use the link you received.</p>
       </form>
     </div>
   )

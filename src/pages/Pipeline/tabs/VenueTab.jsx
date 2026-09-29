@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
 import { JOURNAL_FIELDS, quartileTarget, absTarget, isScopus, venueWarnings } from '../../../lib/journals'
+import { scimagoSearch, SCOPUS_SOURCES, ABS_GUIDE } from '../../../lib/journalLinks'
 
 function TargetBadges({ quality, abs }) {
   const q = quartileTarget(quality)
@@ -147,7 +148,14 @@ export default function VenueTab({ work, canEdit, onPatch }) {
                 <div className="flex items-center gap-2">{work.author_guidelines_reviewed ? '✓' : '○'} Author guidelines reviewed</div>
               </div>
               {venue?.prior_publication_policy && <div className="note mt-2"><strong>Prior-publication policy:</strong> {venue.prior_publication_policy}</div>}
-              <p className="text-xs text-slate-400 mt-3">Journal rankings change every year — verify the current Scopus status, quartile (sjr.scimagojr.com) and ABS rating before submitting.</p>
+              <p className="text-xs text-slate-400 mt-3">Journal rankings change every year — verify the current Scopus status, quartile and ABS rating before submitting.</p>
+              {work.venue && work.venue !== 'N/A' && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <a className="btn btn-soft !py-1 text-xs" href={scimagoSearch(venue?.full_name || work.venue)} target="_blank" rel="noreferrer">Check on Scimago ↗</a>
+                  <a className="btn btn-soft !py-1 text-xs" href={SCOPUS_SOURCES} target="_blank" rel="noreferrer">Scopus Sources ↗</a>
+                  <a className="btn btn-soft !py-1 text-xs" href={ABS_GUIDE} target="_blank" rel="noreferrer">ABS Guide ↗</a>
+                </div>
+              )}
             </div>
           </div>
         </>

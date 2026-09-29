@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { JOURNAL_FIELDS, quartileTarget, absTarget } from '../../lib/journals'
+import { scimagoSearch } from '../../lib/journalLinks'
 
 const CHECKLIST_ITEMS = [
   ['indexing', 'Indexing verified'], ['quality', 'Quality tier confirmed'], ['publisher', 'Publisher verified'],
@@ -145,7 +146,10 @@ export default function VenuesFull() {
                       <span className={`badge ${verified(v) ? 'badge-green' : 'badge-amber'}`}>{verified(v) ? 'Verified' : 'Not verified'}</span>
                       <div className="text-xs text-slate-400">{v.verified_on || 'No verification date'}{v.verified_by ? ` · ${v.verified_by}` : ''}</div>
                     </td>
-                    <td><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => startEdit(v)}>✎ Edit</button></td>
+                    <td className="whitespace-nowrap">
+                      <a className="text-xs text-brand underline mr-2" href={scimagoSearch(v.full_name || v.name)} target="_blank" rel="noreferrer">Scimago ↗</a>
+                      <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => startEdit(v)}>✎ Edit</button>
+                    </td>
                   </tr>
                 )
               })}

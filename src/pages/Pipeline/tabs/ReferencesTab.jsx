@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useToast } from '../../../context/ToastContext'
+import { toRis, dois, downloadText } from '../../../lib/ris'
 
 // Personalised reference extract (Appendix 3): entries from the shared library attached to
 // this paper, ready to use in the literature review (sub-tasks 1.1 and 2.1).
@@ -38,7 +39,15 @@ export default function ReferencesTab({ work, canEdit }) {
       <div className="card">
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-bold">Reference extract for this paper</h3>
-          {refs.length > 0 && <button className="btn btn-soft" onClick={() => { navigator.clipboard?.writeText(refs.join('\n\n')); showToast(`${refs.length} references copied (APA)`) }}>Copy all references</button>}
+          {mine.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-end">
+              <button className="btn btn-soft" onClick={() => { navigator.clipboard?.writeText(refs.join('\n\n')); showToast(`${refs.length} references copied (APA)`) }}>Copy all (APA)</button>
+              <button className="btn btn-soft" title="Import into Zotero (File → Import) or Mendeley (File → Import → RIS)"
+                onClick={() => downloadText(`references-${(work.title || 'paper').slice(0, 40).replace(/[^\w]+/g, '-')}.ris`, toRis(mine))}>⬇ Zotero / Mendeley (.ris)</button>
+              {dois(mine).length > 0 && <button className="btn btn-soft" title="Paste into Zotero's 'Add Item by Identifier' (magic wand)"
+                onClick={() => { navigator.clipboard?.writeText(dois(mine).join('\n')); showToast(`${dois(mine).length} DOIs copied — paste into Zotero's magic wand`) }}>Copy DOIs</button>}
+            </div>
+          )}
         </div>
         {mine.length === 0 ? <p className="text-sm text-slate-400">No entries attached yet.{canEdit && ' Search the library below to add themes and references.'}</p> : (
           <div className="space-y-2">
