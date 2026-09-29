@@ -4,12 +4,12 @@ import { supabase } from '../../lib/supabaseClient'
 import { badgeClass } from '../../lib/health'
 import { useAuth } from '../../context/AuthContext'
 import { canCreateWork, canSeeAllWorks } from '../../lib/roles'
-import { STAGES } from '../../lib/workOptions'
+import { STAGES, KPI_CATEGORIES } from '../../lib/workOptions'
 import PageHeader from '../../components/PageHeader'
 
 const EMPTY_WORK = {
   title: '', department: '', research_type: 'Journal Article', submission_status: 'Pre-Submission',
-  lead: '', corresponding: '', venue: '', venue_quality: '', academic_year: '', ethics: 'N/A'
+  lead: '', corresponding: '', venue: '', venue_quality: '', academic_year: '', ethics: 'N/A', kpi_category: 'FT Independent'
 }
 const RESEARCH_TYPES = ['Journal Article', 'Conference Abstract', 'Conference Full Paper', 'Extended Paper / Book Chapter', 'Book', 'Book Chapter', 'Case Study', 'Working Paper', 'Technical / Policy Report', 'Other']
 
@@ -158,6 +158,12 @@ export default function PipelineList() {
               <label>Research Type</label>
               <select value={draft.research_type} onChange={e => setDraft(d => ({ ...d, research_type: e.target.value }))}>
                 {RESEARCH_TYPES.map(t => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label>KPI Category</label>
+              <select value={draft.kpi_category} onChange={e => setDraft(d => ({ ...d, kpi_category: e.target.value }))}>
+                {KPI_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>

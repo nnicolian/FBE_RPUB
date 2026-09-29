@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { deriveHealth, badgeClass } from '../lib/health'
+import { kpiLabel } from '../lib/workOptions'
 
 function Bar({ label, value, max, onClick }) {
   const pct = max ? (value / max) * 100 : 0
@@ -16,6 +17,77 @@ function Bar({ label, value, max, onClick }) {
 
 const MATURITY_LEVELS = ['Not Classified', 'Idea', 'Work in Progress', 'Conference-ready', 'Extended-publication-ready', 'Journal-ready']
 const MAJOR_STAGES = ['Initiate', 'Build', 'Refine', 'Publish']
+
+// Faculty KPI: 14 Scopus-indexed publications a year (Research Strategy, Appendix 2).
+// Counts come from the database for the whole Faculty, whatever papers this user can open.
+function KpiPanel() {
+  const [years, setYears] = useState([])
+  const [year, setYear] = useState('')
+  const [rows, setRows] = useState(null)
+
+  useEffect(() => {
+    supabase.from('academic_years').select('name').eq('active', true).order('name').then(({ data }) => {
+      const names = (data || []).map(y => y.name)
+      setYears(names)
+      setYear(names.includes('2026–2027') ? '2026–2027' : names.at(-1) || '')
+    })
+  }, [])
+  useEffect(() => {
+    if (!year) return
+    setRows(null)
+    supabase.rpc('kpi_summary', { p_year: year }).then(({ data }) => setRows(data || []))
+  }, [year])
+
+  const counting = (rows || []).filter(r => r.category !== 'Not counted')
+  const target = counting.reduce((n, r) => n + r.target, 0)
+  const counted = counting.reduce((n, r) => n + r.counted, 0)
+  const likely = counting.reduce((n, r) => n + r.accepted, 0)
+  const pct = target ? Math.min(100, Math.round((counted / target) * 100)) : 0
+  const likelyPct = target ? Math.min(100 - pct, Math.round((likely / target) * 100)) : 0
+
+  return (
+    <div className="card">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div>
+          <h3 className="font-bold">Faculty KPI — Scopus-indexed publications</h3>
+          <p className="text-xs text-slate-500">A paper counts once it is Published in a Scopus-indexed venue. Accepted papers are shown as likely.</p>
+        </div>
+        <select className="!w-40" value={year} onChange={e => setYear(e.target.value)}>
+          {years.map(y => <option key={y}>{y}</option>)}
+        </select>
+      </div>
+      {!rows ? <p className="text-sm text-slate-400">Loading…</p> : (
+        <>
+          <div className="flex items-end gap-3 mb-2">
+            <b className="text-3xl">{counted}</b><span className="text-slate-400 mb-1">of {target} published</span>
+            <span className="badge badge-purple mb-1">+{likely} accepted</span>
+          </div>
+          <div className="h-3 bg-slate-100 rounded-full overflow-hidden flex mb-4">
+            <div className="h-full bg-emerald-500" style={{ width: `${pct}%` }} />
+            <div className="h-full bg-emerald-200" style={{ width: `${likelyPct}%` }} />
+          </div>
+          <div className="overflow-x-auto">
+            <table>
+              <thead><tr><th>Category</th><th>Target</th><th>Published</th><th>Accepted</th><th>Submitted</th><th>In progress</th><th>Not counting yet</th></tr></thead>
+              <tbody>
+                {rows.map(r => (
+                  <tr key={r.category}>
+                    <td className="font-semibold">{kpiLabel(r.category)}</td>
+                    <td>{r.target}</td>
+                    <td><span className={`badge ${r.counted >= r.target && r.target ? 'badge-green' : 'badge-gray'}`}>{r.counted}</span></td>
+                    <td>{r.accepted}</td><td>{r.submitted}</td><td>{r.in_progress}</td>
+                    <td className="text-slate-400">{r.not_counting}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-slate-400 mt-2">"Not counting yet" = submitted or accepted, but the venue isn't confirmed as Scopus-indexed (e.g. conference proceedings).</p>
+        </>
+      )}
+    </div>
+  )
+}
 
 export default function Dashboard() {
   const nav = useNavigate()
@@ -78,6 +150,8 @@ export default function Dashboard() {
           <p className="text-white/80 text-sm">Overview of the research pipeline across all departments.</p>
         </div>
       </div>
+
+      <KpiPanel />
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {metrics.map(m => (

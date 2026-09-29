@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
-import { RESEARCH_TYPES, MATURITY_LEVELS, ETHICS } from '../../../lib/workOptions'
+import { RESEARCH_TYPES, MATURITY_LEVELS, ETHICS, KPI_CATEGORIES, kpiLabel } from '../../../lib/workOptions'
 import FileList from '../../../components/FileList'
 
 // Keeps the current value selectable even if it isn't in the standard list.
@@ -12,6 +12,7 @@ function draftFrom(work) {
     title: work.title || '',
     research_type: work.research_type || '',
     research_maturity: work.research_maturity || 'Not Classified',
+    kpi_category: work.kpi_category || '',
     department: work.department || '',
     collaborating: (work.departments || []).filter(d => d !== work.department),
     ethics: work.ethics || 'N/A',
@@ -41,7 +42,7 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
     if (!draft.department) { setErr('Choose a primary department.'); return }
     const collab = draft.collaborating.filter(d => d && d !== draft.department)
     const ok = await onPatch({
-      title: draft.title.trim(), research_type: draft.research_type, research_maturity: draft.research_maturity,
+      title: draft.title.trim(), research_type: draft.research_type, research_maturity: draft.research_maturity, kpi_category: draft.kpi_category || null,
       department: draft.department, departments: [draft.department, ...collab],
       ethics: draft.ethics, lead: draft.lead, corresponding: draft.corresponding,
       venue: draft.venue, manuscript_id: draft.manuscript_id,
@@ -53,6 +54,7 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
   const boxes = [
     ['Research Type', work.research_type || '—'],
     ['Research Maturity', work.research_maturity || 'Not Classified'],
+    ['KPI Category', kpiLabel(work.kpi_category)],
     ['Primary Department', work.department],
     ['Collaborating Departments', (work.departments || []).filter(d => d !== work.department).join(', ') || '—'],
     ['Pipeline Phase (automatic)', work.stage || '—'],
@@ -98,6 +100,12 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
                 <select value={draft.research_maturity} onChange={e => set('research_maturity', e.target.value)}>
                   {withCurrent(MATURITY_LEVELS, draft.research_maturity).map(t => <option key={t}>{t}</option>)}
                 </select></div>
+              <div><label>KPI Category</label>
+                <select value={draft.kpi_category} onChange={e => set('kpi_category', e.target.value)}>
+                  <option value="">— Not set —</option>
+                  {KPI_CATEGORIES.map(c => <option key={c.value} value={c.value} title={c.hint}>{c.label}</option>)}
+                </select>
+                <p className="text-xs text-slate-400 mt-1">{KPI_CATEGORIES.find(c => c.value === draft.kpi_category)?.hint || 'Which part of the 14-paper Faculty KPI this paper counts toward.'}</p></div>
               <div><label>Pipeline Phase</label>
                 <input value={work.stage || '—'} disabled title="Set automatically from sub-task progress" /></div>
               <div><label>Primary Department</label>
