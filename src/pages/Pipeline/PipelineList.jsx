@@ -9,7 +9,8 @@ import PageHeader from '../../components/PageHeader'
 
 const EMPTY_WORK = {
   title: '', department: '', research_type: 'Journal Article', submission_status: 'Pre-Submission',
-  lead: '', corresponding: '', venue: '', venue_quality: '', academic_year: '', ethics: 'N/A', kpi_category: 'FT Independent'
+  lead: '', corresponding: '', venue: '', venue_quality: '', academic_year: '', ethics: 'N/A', kpi_category: 'FT Independent',
+  student_name: '', supervisor: ''
 }
 const RESEARCH_TYPES = ['Journal Article', 'Conference Abstract', 'Conference Full Paper', 'Extended Paper / Book Chapter', 'Book', 'Book Chapter', 'Case Study', 'Working Paper', 'Technical / Policy Report', 'Other']
 
@@ -30,6 +31,7 @@ export default function PipelineList() {
   const [createError, setCreateError] = useState(null)
   const [creating, setCreating] = useState(false)
   const [years, setYears] = useState([])
+  const [supervisors, setSupervisors] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { load() }, [])
@@ -44,6 +46,8 @@ export default function PipelineList() {
     setWorks(w || [])
     setDepartments(d || [])
     setYears(y || [])
+    supabase.from('researchers').select('name, type, accepts_ms_students').eq('active', true).order('name')
+      .then(({ data: r }) => setSupervisors((r || []).filter(x => x.type === 'Internal')))
     if (profile?.role === 'chair' && profile.department) {
       setDraft(prev => ({ ...prev, department: profile.department }))
     }
@@ -52,9 +56,15 @@ export default function PipelineList() {
 
   async function createWork() {
     if (!draft.title || !draft.department) { setCreateError('Enter a title and choose a department.'); return }
+    const isMs = draft.kpi_category === 'MS Student'
+    if (isMs && (!draft.student_name.trim() || !draft.supervisor)) { setCreateError('For an MS paper, enter the student and choose the supervisor.'); return }
     setCreating(true); setCreateError(null)
+    // MS papers: the student is first author and the supervisor co-author (Appendix 5).
+    const row = isMs
+      ? { ...draft, lead: draft.student_name.trim(), coauthors: [draft.supervisor], student_name: draft.student_name.trim() }
+      : { ...draft, student_name: '', supervisor: '' }
     const { data, error } = await supabase.from('works').insert({
-      ...draft, departments: [draft.department], created_by: profile?.id
+      ...row, departments: [draft.department], created_by: profile?.id
     }).select().single()
     if (error) { setCreating(false); setCreateError(error.message); return }
 
@@ -152,7 +162,7 @@ export default function PipelineList() {
                 {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
               </select>
             </div>
-            <div><label>Lead Researcher</label><input value={draft.lead} onChange={e => setDraft(d => ({ ...d, lead: e.target.value }))} /></div>
+            {draft.kpi_category !== 'MS Student' && <div><label>Lead Researcher</label><input value={draft.lead} onChange={e => setDraft(d => ({ ...d, lead: e.target.value }))} /></div>}
             <div><label>Corresponding Author</label><input value={draft.corresponding} onChange={e => setDraft(d => ({ ...d, corresponding: e.target.value }))} /></div>
             <div>
               <label>Research Type</label>
@@ -166,6 +176,18 @@ export default function PipelineList() {
                 {KPI_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
+            {draft.kpi_category === 'MS Student' && (
+              <>
+                <div><label>MS Student (first author)</label><input value={draft.student_name} onChange={e => setDraft(d => ({ ...d, student_name: e.target.value }))} /></div>
+                <div>
+                  <label>Supervisor (co-author)</label>
+                  <select value={draft.supervisor} onChange={e => setDraft(d => ({ ...d, supervisor: e.target.value }))}>
+                    <option value="">— Choose —</option>
+                    {supervisors.map(r => <option key={r.name} value={r.name}>{r.name}{r.accepts_ms_students ? ' · accepting MS students' : ''}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
             <div>
               <label>Academic Year</label>
               <select value={draft.academic_year} onChange={e => setDraft(d => ({ ...d, academic_year: e.target.value }))}>

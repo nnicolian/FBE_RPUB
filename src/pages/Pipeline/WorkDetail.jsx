@@ -15,6 +15,7 @@ import FinanceTab from './tabs/FinanceTab'
 import MilestonesTab from './tabs/MilestonesTab'
 import RisksTab from './tabs/RisksTab'
 import UpdatesTab from './tabs/UpdatesTab'
+import MsTab from './tabs/MsTab'
 
 // Committee Reviews tab removed: the pipeline is self-reported, with no approvals.
 const TABS = [
@@ -37,6 +38,7 @@ export default function WorkDetail() {
   const [deliverables, setDeliverables] = useState([])
   const [costEntries, setCostEntries] = useState([])
   const [settings, setSettings] = useState(null)
+  const [meetings, setMeetings] = useState([])
   const [dbCanEdit, setDbCanEdit] = useState(null)
   const [tab, setTab] = useState('overview')
   const [loading, setLoading] = useState(true)
@@ -46,7 +48,7 @@ export default function WorkDetail() {
   // The first load shows a spinner; reloads after an edit refresh in place.
   async function load(initial = false) {
     if (initial) setLoading(true)
-    const [{ data: w }, { data: p }, { data: m }, { data: r }, { data: u }, { data: d }, { data: c }, { data: s }] = await Promise.all([
+    const [{ data: w }, { data: p }, { data: m }, { data: r }, { data: u }, { data: d }, { data: c }, { data: s }, { data: sm }] = await Promise.all([
       supabase.from('works').select('*').eq('id', id).single(),
       supabase.from('phases').select('*, tasks(*)').eq('work_id', id).order('seq'),
       supabase.from('milestones').select('*').eq('work_id', id),
@@ -54,8 +56,10 @@ export default function WorkDetail() {
       supabase.from('work_updates').select('*').eq('work_id', id).order('update_date', { ascending: false }),
       supabase.from('deliverables').select('*').eq('work_id', id),
       supabase.from('cost_entries').select('*').eq('work_id', id),
-      supabase.from('oversight_settings').select('*').single()
+      supabase.from('oversight_settings').select('*').single(),
+      supabase.from('supervision_meetings').select('*').eq('work_id', id)
     ])
+    setMeetings(sm || [])
     // Ask the database whether this user may edit this paper — it applies the exact
     // access rules (own papers, department for chairs, everything for the Coordinator).
     const { data: ok } = await supabase.rpc('can_write_work', { p_work: id })
@@ -114,7 +118,7 @@ export default function WorkDetail() {
 
       <div className="border-b border-slate-200 overflow-x-auto">
         <div className="flex gap-1 min-w-max">
-          {TABS.map(([key, label]) => (
+          {(work.kpi_category === 'MS Student' ? [TABS[0], TABS[1], ['ms', 'MS Supervision'], ...TABS.slice(2)] : TABS).map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               className={`px-3 py-2 text-sm font-semibold border-b-2 transition whitespace-nowrap ${tab === key ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
               {label}
@@ -123,6 +127,7 @@ export default function WorkDetail() {
         </div>
       </div>
 
+      {tab === 'ms' && <MsTab work={work} phases={phases} meetings={meetings} canEdit={canEdit} onPatch={patchWork} onReload={() => load()} />}
       {tab === 'overview' && <OverviewTab work={work} health={health} canEdit={canEdit} onPatch={patchWork} />}
       {tab === 'hierarchy' && <HierarchyTab work={work} phases={phases} canEdit={canEdit} onReload={() => load()} />}
       {tab === 'authors' && <AuthorsTab work={work} canEdit={canEdit} onPatch={patchWork} />}

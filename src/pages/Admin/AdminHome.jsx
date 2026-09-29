@@ -5,6 +5,7 @@ import Settings from './Settings'
 import Targets from './Targets'
 import VenuesFull from './VenuesFull'
 import LifecycleTemplate from './LifecycleTemplate'
+import ResearchersAdmin from './ResearchersAdmin'
 import PageHeader from '../../components/PageHeader'
 
 // Configuration is admin-only (route guard in App.jsx and the database policies).
@@ -33,10 +34,7 @@ export default function AdminHome() {
         <SimpleCrudTable table="departments" title="Departments"
           fields={[{ key: 'code', label: 'Code', required: true }, { key: 'name', label: 'Name', required: true }, { key: 'chair_name', label: 'Chair' }]} />
       )}
-      {tab === 'Researchers' && (
-        <SimpleCrudTable table="researchers" title="Researchers"
-          fields={[{ key: 'name', label: 'Name', required: true }, { key: 'department', label: 'Department' }, { key: 'type', label: 'Type', default: 'Internal' }, { key: 'email', label: 'Email' }]} />
-      )}
+      {tab === 'Researchers' && <ResearchersAdmin />}
       {tab === 'Venues' && <VenuesFull />}
       {tab === 'Academic Years' && (
         <SimpleCrudTable table="academic_years" title="Academic Years"

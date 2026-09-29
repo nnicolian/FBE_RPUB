@@ -51,6 +51,12 @@ export function deriveHealth(work, { milestones = [], risks = [], updates = [] }
   if (active && stale > s.stale_days) reasons.push(`no movement for ${stale} days`)
   if (active && stale > s.stale_days * 2) red.push('stationary for a long time')
 
+  // MS papers should be in Build by the end of February (Research Calendar, Appendix 8).
+  if (work.kpi_category === 'MS Student' && work.stage === 'Initiate') {
+    const endYear = Number(String(work.academic_year || '').match(/(\d{4})\D+(\d{4})/)?.[2])
+    if (endYear && new Date() > new Date(`${endYear}-02-28T23:59:59`)) reasons.push('MS paper still in Initiate after February')
+  }
+
   return { status: red.length ? 'Red' : reasons.length ? 'Amber' : 'Green', reasons }
 }
 
