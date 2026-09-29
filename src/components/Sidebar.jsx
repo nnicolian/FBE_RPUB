@@ -9,6 +9,9 @@ const LINKS = [
   { to: '/', label: 'Dashboard', icon: '📊', roles: null },
   { to: '/pipeline', label: 'Research Pipeline', icon: '📚', roles: null },
   { to: '/reports', label: 'Reports', icon: '📈', roles: null },
+  { to: '/library', label: 'References Library', icon: '📖', roles: null },
+  { to: '/calendar', label: 'Research Calendar', icon: '🗓️', roles: null },
+  { to: '/committee', label: 'Research Committee', icon: '🏛️', roles: ['admin', 'research_admin', 'dean'] },
   { to: '/part-time', label: 'Part-Time Faculty', icon: '🤝', roles: ['admin', 'research_admin'] },
   { to: '/admin', label: 'Configuration', icon: '⚙️', roles: ['admin'] }
 ]
@@ -18,7 +21,7 @@ export default function Sidebar() {
   const [showChangePw, setShowChangePw] = useState(false)
 
   return (
-    <aside className="w-60 shrink-0 bg-navy text-white min-h-screen flex flex-col">
+    <aside className="w-60 shrink-0 bg-navy text-white min-h-screen flex flex-col print:hidden">
       <div className="p-5 border-b border-white/10 flex items-center gap-3">
         <div className="text-3xl leading-none">🎓</div>
         <div className="font-bold text-base leading-tight">AUST<br />FBE Research & Publications</div>
@@ -43,7 +46,7 @@ export default function Sidebar() {
         <button onClick={() => setShowChangePw(true)} className="mt-3 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Change Password</button>
         <button onClick={signOut} className="mt-2 btn btn-ghost w-full !bg-white/10 !border-white/20 !text-white">Sign out</button>
         {/* Bump this label with each release to confirm the live site is up to date. */}
-        <div className="mt-3 text-[10px] text-white/40 text-center">Version 2026-09-29 · Stage 2 (MS papers, part-time faculty)</div>
+        <div className="mt-3 text-[10px] text-white/40 text-center">Version 2026-09-29 · Stage 3 (library, committee, calendar)</div>
       </div>
       {showChangePw && <ChangePasswordModal onClose={() => setShowChangePw(false)} />}
     </aside>

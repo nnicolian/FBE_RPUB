@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 import { badgeClass } from '../lib/health'
 import { STAGES } from '../lib/workOptions'
 import PageHeader from '../components/PageHeader'
+import PipelineSummary, { REPORT_TYPES } from '../components/PipelineSummary'
 
 function toCsv(rows) {
   if (!rows.length) return ''
@@ -36,6 +37,7 @@ export default function Reports() {
   const [filters, setFilters] = useState({ department: '', year: '', quality: '' })
   const [years, setYears] = useState([])
   const [customLabel, setCustomLabel] = useState('')
+  const [summary, setSummary] = useState('')
 
   useEffect(() => { load() }, [])
 
@@ -97,7 +99,15 @@ export default function Reports() {
       <PageHeader icon="📈" title="Reports" subtitle="Detailed analytics across the research portfolio. Click any bar, row, or researcher to open it in the Pipeline."
         action={<button className="btn btn-blue" onClick={exportCsv}>Export CSV</button>} />
 
-      <div className="card flex flex-wrap gap-3">
+      <div className="card flex flex-wrap items-center gap-3 print:hidden">
+        <strong className="text-sm">Coordination reports for the Dean:</strong>
+        {['monthly', 'midyear', 'annual'].map(k => (
+          <button key={k} className={`btn ${summary === k ? 'btn-blue' : 'btn-soft'}`} onClick={() => setSummary(s => s === k ? '' : k)}>{REPORT_TYPES[k].title}</button>
+        ))}
+      </div>
+      {summary && <PipelineSummary type={summary} year={filters.year || '2026–2027'} />}
+
+      <div className={`card flex flex-wrap gap-3 ${summary ? 'print:hidden' : ''}`}>
         <select className="!w-48" value={filters.department} onChange={e => setFilters(f => ({ ...f, department: e.target.value }))}>
           <option value="">All departments</option>
           {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}

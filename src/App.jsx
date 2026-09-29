@@ -7,6 +7,9 @@ import WorkDetail from './pages/Pipeline/WorkDetail'
 import Reports from './pages/Reports'
 import PartTime from './pages/PartTime'
 import Survey from './pages/Survey'
+import Library from './pages/Library'
+import Calendar from './pages/Calendar'
+import Committee from './pages/Committee'
 import AdminHome from './pages/Admin/AdminHome'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -30,6 +33,15 @@ export default function App() {
       } />
       <Route path="/reports" element={
         <ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>
+      } />
+      <Route path="/library" element={
+        <ProtectedRoute><Layout><Library /></Layout></ProtectedRoute>
+      } />
+      <Route path="/calendar" element={
+        <ProtectedRoute><Layout><Calendar /></Layout></ProtectedRoute>
+      } />
+      <Route path="/committee" element={
+        <ProtectedRoute roles={['admin', 'research_admin', 'dean']}><Layout><Committee /></Layout></ProtectedRoute>
       } />
       <Route path="/part-time" element={
         <ProtectedRoute roles={['admin', 'research_admin']}><Layout><PartTime /></Layout></ProtectedRoute>
