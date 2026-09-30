@@ -7,7 +7,7 @@ import WorkDetail from './pages/Pipeline/WorkDetail'
 import Reports from './pages/Reports'
 import PartTime from './pages/PartTime'
 import Survey from './pages/Survey'
-import Library from './pages/Library'
+import VenueLibrary from './pages/VenueLibrary'
 import Calendar from './pages/Calendar'
 import Committee from './pages/Committee'
 import Resources from './pages/Resources'
@@ -35,8 +35,8 @@ export default function App() {
       <Route path="/reports" element={
         <ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>
       } />
-      <Route path="/library" element={
-        <ProtectedRoute><Layout><Library /></Layout></ProtectedRoute>
+      <Route path="/venues" element={
+        <ProtectedRoute><Layout><VenueLibrary /></Layout></ProtectedRoute>
       } />
       <Route path="/resources" element={
         <ProtectedRoute><Layout><Resources /></Layout></ProtectedRoute>

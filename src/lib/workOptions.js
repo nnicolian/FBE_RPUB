@@ -48,3 +48,17 @@ export const MS_TIMELINE = [
 export const MIN_MEETINGS_PER_PHASE = 2
 
 export const PT_STATUSES = ['New', 'Match proposed', 'Introduced', 'Collaborating', 'Not now']
+
+// Collaboration on a research output (Research Coordinator, 30/09/2026).
+export const COLLABORATION_TYPES = [
+  { value: 'FBE department', label: 'Another FBE department' },
+  { value: 'AUST faculty', label: 'Another AUST faculty' },
+  { value: 'Other university', label: 'Another university' },
+  { value: 'External / industry', label: 'External or industry researchers' },
+]
+export const INDEPENDENT = 'None'   // "N/A — independent research"
+export const collaborationLabel = (list) => {
+  const l = list || []
+  if (l.includes(INDEPENDENT)) return 'None — independent research'
+  return l.length ? l.map((v) => COLLABORATION_TYPES.find((t) => t.value === v)?.label || v).join(', ') : 'Not recorded'
+}

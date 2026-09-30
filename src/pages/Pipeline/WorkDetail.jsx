@@ -16,11 +16,10 @@ import MilestonesTab from './tabs/MilestonesTab'
 import RisksTab from './tabs/RisksTab'
 import UpdatesTab from './tabs/UpdatesTab'
 import MsTab from './tabs/MsTab'
-import ReferencesTab from './tabs/ReferencesTab'
 
 // Committee Reviews tab removed: the pipeline is self-reported, with no approvals.
 const TABS = [
-  ['overview', 'Overview'], ['hierarchy', 'Pipeline Progress'], ['authors', 'Authors'], ['references', 'References'],
+  ['overview', 'Overview'], ['hierarchy', 'Pipeline Progress'], ['authors', 'Authors'],
   ['venue', 'Venue & Submission'], ['files', 'Deliverables & Files'],
   ['finance', 'Costs & Funding'], ['milestones', 'Milestones'], ['risks', 'Risks & Issues'], ['updates', 'Updates']
 ]
@@ -128,7 +127,6 @@ export default function WorkDetail() {
         </div>
       </div>
 
-      {tab === 'references' && <ReferencesTab work={work} canEdit={canEdit} />}
       {tab === 'ms' && <MsTab work={work} phases={phases} meetings={meetings} canEdit={canEdit} onPatch={patchWork} onReload={() => load()} />}
       {tab === 'overview' && <OverviewTab work={work} health={health} canEdit={canEdit} onPatch={patchWork} />}
       {tab === 'hierarchy' && <HierarchyTab work={work} phases={phases} canEdit={canEdit} onReload={() => load()} />}

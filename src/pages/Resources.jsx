@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { hasFullContentAccess } from '../lib/roles'
 import { Markdown } from '../lib/markdown'
-import { JOURNAL_FIELDS, quartileTarget, absTarget } from '../lib/journals'
 import { scimagoSearch, SCOPUS_SOURCES, ABS_GUIDE } from '../lib/journalLinks'
 import FileList from '../components/FileList'
 import PageHeader from '../components/PageHeader'
@@ -19,7 +18,7 @@ const TOOLS = [
   { icon: '📊', name: 'Scimago Journal Rank (SJR)', what: 'Free tool for finding Scopus-indexed journals by field, quartile (Q1–Q4) and h-index.', when: 'Choosing and verifying a target journal (sub-task 1.2).', links: [['Open Scimago', 'https://www.scimagojr.com/']] },
   { icon: '🔎', name: 'Scopus Sources', what: 'The authoritative list of Scopus-indexed journals and proceedings. Only Scopus-indexed publications count toward the Faculty KPI.', when: 'Confirming current Scopus status before submitting.', links: [['Open Scopus Sources', SCOPUS_SOURCES]] },
   { icon: '⭐', name: 'ABS Academic Journal Guide', what: 'Chartered ABS star ratings (1–4*) for business and management journals; ABS 2* and above is the preferred benchmark. Free registration required.', when: 'Confirming a journal\'s quality rating.', links: [['Open the AJG', ABS_GUIDE]] },
-  { icon: '📚', name: 'Zotero / Mendeley', what: 'Recommended reference managers for building long-term citation libraries. Each paper\'s References tab exports a file both can import.', when: 'Literature review (sub-task 2.1) and formatting (3.3).', links: [['Zotero (free)', 'https://www.zotero.org/download/'], ['Mendeley', 'https://www.mendeley.com/download-reference-manager/']] },
+  { icon: '📚', name: 'Zotero / Mendeley', what: 'Recommended reference managers for building long-term citation libraries. Import references from Google Scholar with one click.', when: 'Literature review (sub-task 2.1) and formatting (3.3).', links: [['Zotero (free)', 'https://www.zotero.org/download/'], ['Mendeley', 'https://www.mendeley.com/download-reference-manager/']] },
   { icon: '🧩', name: 'Rapid Journal Quality Check', what: 'Browser extension that shows journal rankings (SJR, ABS, ABDC…) and h-index next to Google Scholar results.', when: 'Scanning the literature and spotting strong sources and venues.', links: [['Add to Chrome / Edge', 'https://chromewebstore.google.com/detail/mfkbhgdamgfcifnhcdebfahkgnbkagmo']] }
 ]
 
@@ -69,25 +68,44 @@ export default function Resources() {
   const canEdit = hasFullContentAccess(profile)
   const [docs, setDocs] = useState([])
   const [open, setOpen] = useState(null)
-  const [venues, setVenues] = useState([])
-  const [field, setField] = useState('')
   const [check, setCheck] = useState('')
 
   useEffect(() => { load() }, [])
   async function load() {
-    const [{ data: d }, { data: v }] = await Promise.all([
-      supabase.from('resource_documents').select('*').order('sort'),
-      supabase.from('venues').select('*').eq('active', true).eq('type', 'Journal').order('name')
-    ])
-    setDocs(d || []); setVenues(v || [])
+    const { data: d } = await supabase.from('resource_documents').select('*').order('sort')
+    setDocs(d || [])
   }
 
+
   const openDoc = docs.find(x => x.id === open)
-  const shownVenues = venues.filter(v => !field || v.field === field)
 
   return (
     <div className="space-y-4">
       <PageHeader icon="🧰" title="Tools & Resources" subtitle="The tools, guidance documents and journal list that support the Faculty research strategy." />
+
+      <div className="card space-y-3">
+        <div>
+          <h3 className="text-lg font-bold">📑 Research Strategy & Appendices</h3>
+          <p className="text-xs text-slate-500">The Faculty's research framework and its appendices — open any one to read it here, print it, or download the original from Files below.</p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {docs.map(d => (
+            <button key={d.id} onClick={() => setOpen(o => o === d.id ? null : d.id)}
+              className={`text-left rounded-xl border-2 p-4 transition hover:shadow-md ${open === d.id ? 'border-brand bg-blue-50/60 shadow-md' : 'border-slate-200 bg-white hover:border-brand'}`}>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-navy to-brand text-white text-sm font-bold shrink-0">{d.appendix.startsWith('Appendix') ? d.appendix.replace('Appendix ', 'A') : '★'}</span>
+                <div className="min-w-0">
+                  <div className="text-[11px] uppercase tracking-wide text-slate-400">{d.appendix}{d.audience === 'leadership' && ' · Leadership only'}</div>
+                  <div className="font-bold text-sm leading-tight">{d.title}</div>
+                </div>
+              </div>
+              <div className="text-xs text-slate-500">{d.description}</div>
+              <div className="mt-2 text-xs font-semibold text-brand">{open === d.id ? 'Close ▲' : 'Read ▸'}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      {openDoc && <DocReader key={openDoc.id} doc={openDoc} canEdit={canEdit} onSaved={load} />}
 
       <div className="card">
         <h3 className="font-bold mb-2">Check a journal</h3>
@@ -114,57 +132,11 @@ export default function Resources() {
           </div>
         ))}
         <div className="card flex flex-col">
-          <div className="text-2xl">📖</div>
-          <h3 className="font-bold mt-1">References Library</h3>
-          <p className="text-sm text-slate-600 mt-1">The Master Themes, Definitions & References Table — theories, working definitions and vetted references.</p>
-          <p className="text-xs text-slate-400 mt-1"><strong>Use it for:</strong> grounding the literature review; attach entries on your paper's References tab.</p>
-          <div className="mt-auto pt-3"><Link className="btn btn-soft !py-1 text-xs" to="/library">Open the library</Link></div>
-        </div>
-      </div>
-
-      <div className="card">
-        <h3 className="font-bold mb-2">Guidance documents</h3>
-        <div className="grid md:grid-cols-2 gap-2">
-          {docs.map(d => (
-            <button key={d.id} onClick={() => setOpen(o => o === d.id ? null : d.id)}
-              className={`text-left border rounded-lg p-3 hover:border-brand ${open === d.id ? 'border-brand bg-blue-50/40' : 'border-slate-200'}`}>
-              <div className="text-xs text-slate-400">{d.appendix}{d.audience === 'leadership' && ' · Leadership only'}</div>
-              <div className="font-semibold text-sm">{d.title}</div>
-              <div className="text-xs text-slate-500">{d.description}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-      {openDoc && <DocReader key={openDoc.id} doc={openDoc} canEdit={canEdit} onSaved={load} />}
-
-      <div className="card">
-        <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
-          <div>
-            <h3 className="font-bold">Recommended journals</h3>
-            <p className="text-xs text-slate-500">Starter list from the Journal Targeting Reference Sheet, with the Faculty's targeting labels.</p>
-          </div>
-          <select className="!w-64" value={field} onChange={e => setField(e.target.value)}>
-            <option value="">All fields</option>{JOURNAL_FIELDS.map(f => <option key={f}>{f}</option>)}
-          </select>
-        </div>
-        <div className="overflow-x-auto">
-          <table>
-            <thead><tr><th>Journal</th><th>Field</th><th>SJR quartile</th><th>ABS</th><th></th></tr></thead>
-            <tbody>
-              {shownVenues.map(v => {
-                const q = quartileTarget(v.quality), a = absTarget(v.abs)
-                return (
-                  <tr key={v.id}>
-                    <td className="font-semibold">{v.name}</td>
-                    <td className="text-xs">{v.field || '—'}</td>
-                    <td>{v.quality || '—'}{q && <span className="text-xs text-slate-400"> · {q.label}</span>}</td>
-                    <td>{v.abs || '—'}{a && <span className="text-xs text-slate-400"> · {a.label}</span>}</td>
-                    <td><a className="text-xs text-brand underline whitespace-nowrap" href={scimagoSearch(v.full_name || v.name)} target="_blank" rel="noreferrer">Check on Scimago ↗</a></td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+          <div className="text-2xl">🏛️</div>
+          <h3 className="font-bold mt-1">Venue Library</h3>
+          <p className="text-sm text-slate-600 mt-1">All journals and conferences with Scopus status, SJR quartile and ABS rating — with Google Scholar, Scholar Metrics and Scimago links.</p>
+          <p className="text-xs text-slate-400 mt-1"><strong>Use it for:</strong> choosing and verifying a target journal (sub-task 1.2).</p>
+          <div className="mt-auto pt-3"><Link className="btn btn-soft !py-1 text-xs" to="/venues">Open the Venue Library</Link></div>
         </div>
       </div>
 

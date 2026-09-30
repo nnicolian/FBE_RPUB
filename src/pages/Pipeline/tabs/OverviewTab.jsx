@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
-import { RESEARCH_TYPES, MATURITY_LEVELS, ETHICS, KPI_CATEGORIES, kpiLabel } from '../../../lib/workOptions'
+import { RESEARCH_TYPES, MATURITY_LEVELS, ETHICS, KPI_CATEGORIES, kpiLabel, COLLABORATION_TYPES, INDEPENDENT, collaborationLabel } from '../../../lib/workOptions'
 import FileList from '../../../components/FileList'
 
 // Keeps the current value selectable even if it isn't in the standard list.
@@ -13,6 +13,8 @@ function draftFrom(work) {
     research_type: work.research_type || '',
     research_maturity: work.research_maturity || 'Not Classified',
     kpi_category: work.kpi_category || '',
+    collaboration: work.collaboration || [],
+    collaboration_partners: work.collaboration_partners || '',
     department: work.department || '',
     collaborating: (work.departments || []).filter(d => d !== work.department),
     ethics: work.ethics || 'N/A',
@@ -42,7 +44,7 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
     if (!draft.department) { setErr('Choose a primary department.'); return }
     const collab = draft.collaborating.filter(d => d && d !== draft.department)
     const ok = await onPatch({
-      title: draft.title.trim(), research_type: draft.research_type, research_maturity: draft.research_maturity, kpi_category: draft.kpi_category || null,
+      title: draft.title.trim(), research_type: draft.research_type, research_maturity: draft.research_maturity, kpi_category: draft.kpi_category || null, collaboration: draft.collaboration, collaboration_partners: draft.collaboration_partners,
       department: draft.department, departments: [draft.department, ...collab],
       ethics: draft.ethics, lead: draft.lead, corresponding: draft.corresponding,
       venue: draft.venue, manuscript_id: draft.manuscript_id,
@@ -55,6 +57,7 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
     ['Research Type', work.research_type || '—'],
     ['Research Maturity', work.research_maturity || 'Not Classified'],
     ['KPI Category', kpiLabel(work.kpi_category)],
+    ['Collaboration', collaborationLabel(work.collaboration) + (work.collaboration_partners ? ` · ${work.collaboration_partners}` : '')],
     ['Primary Department', work.department],
     ['Collaborating Departments', (work.departments || []).filter(d => d !== work.department).join(', ') || '—'],
     ['Pipeline Phase (automatic)', work.stage || '—'],
@@ -106,6 +109,31 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
                   {KPI_CATEGORIES.map(c => <option key={c.value} value={c.value} title={c.hint}>{c.label}</option>)}
                 </select>
                 <p className="text-xs text-slate-400 mt-1">{KPI_CATEGORIES.find(c => c.value === draft.kpi_category)?.hint || 'Which part of the 14-paper Faculty KPI this paper counts toward.'}</p></div>
+              <div className="md:col-span-3"><label>Collaboration</label>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+                  {COLLABORATION_TYPES.map(c => (
+                    <label key={c.value} className="!mb-0 flex items-center gap-1 font-normal text-sm">
+                      <input type="checkbox" className="!w-auto" checked={draft.collaboration.includes(c.value)}
+                        onChange={e => set('collaboration', e.target.checked ? [...draft.collaboration.filter(x => x !== INDEPENDENT), c.value] : draft.collaboration.filter(x => x !== c.value))} />
+                      {c.label}
+                    </label>
+                  ))}
+                  <label className="!mb-0 flex items-center gap-1 font-normal text-sm">
+                    <input type="checkbox" className="!w-auto" checked={draft.collaboration.includes(INDEPENDENT)}
+                      onChange={e => set('collaboration', e.target.checked ? [INDEPENDENT] : [])} />
+                    N/A — independent research
+                  </label>
+                </div>
+                {!draft.collaboration.includes(INDEPENDENT) && draft.collaboration.length > 0 && (
+                  <input className="mt-2" placeholder="Partner institutions / external co-authors (e.g. AUB — Dr. X; Industry: Company Y)" value={draft.collaboration_partners} onChange={e => set('collaboration_partners', e.target.value)} />
+                )}
+                {draft.kpi_category === 'FT Independent' && draft.collaboration.some(c => ['AUST faculty', 'Other university', 'External / industry'].includes(c)) && (
+                  <p className="text-xs text-amber-600 mt-1">A collaboration outside FBE usually counts as “Full-time faculty — collaborative” for the KPI. Change the KPI category?</p>
+                )}
+                {draft.kpi_category === 'FT Collaborative' && draft.collaboration.includes(INDEPENDENT) && (
+                  <p className="text-xs text-amber-600 mt-1">Independent research is usually “Full-time faculty — independent” for the KPI.</p>
+                )}
+              </div>
               <div><label>Pipeline Phase</label>
                 <input value={work.stage || '—'} disabled title="Set automatically from sub-task progress" /></div>
               <div><label>Primary Department</label>

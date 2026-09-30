@@ -4,8 +4,9 @@ import { useToast } from '../context/ToastContext'
 import PageHeader from '../components/PageHeader'
 import { PT_STATUSES } from '../lib/workOptions'
 
-// Part-Time Faculty Engagement (Research Strategy §4): survey responses → suggested
-// full-time matches → introduction → collaboration. Admin and Research Coordinator only.
+// Faculty Survey (Research Strategy §4, Appendix 1) — part-time and full-time faculty. Part-time responses →
+// suggested full-time matches → introduction → collaboration; full-time responses update the researcher record
+// (research areas, MS supervision). Admin and Research Coordinator only.
 
 const statusTone = s => ({ New: 'badge-amber', 'Match proposed': 'badge-purple', Introduced: 'badge-purple', Collaborating: 'badge-green', 'Not now': 'badge-gray' }[s] || 'badge-gray')
 
@@ -32,9 +33,18 @@ function ResponseCard({ r, researchers, onSaved }) {
     showToast(error ? `Could not save: ${error.message}` : 'Saved', error ? 'error' : 'success')
     if (!error) onSaved()
   }
+  const researcher = researchers.find(x => (x.email || '').toLowerCase() === r.email.toLowerCase() || x.id === r.researcher_id)
+  async function updateResearcher() {
+    if (!researcher) return
+    const areas = [...new Set([...(researcher.research_areas || []), ...(r.research_areas || [])])]
+    const ms = /^yes|^maybe/i.test(r.ms_supervision || '') ? true : /^not/i.test(r.ms_supervision || '') ? false : researcher.accepts_ms_students
+    const { error } = await supabase.from('researchers').update({ research_areas: areas, accepts_ms_students: ms }).eq('id', researcher.id)
+    showToast(error ? `Could not update: ${error.message}` : `${researcher.name}: research areas and MS supervision updated`, error ? 'error' : 'success')
+    if (!error) onSaved()
+  }
   async function addResearcher() {
     const { data, error } = await supabase.from('researchers').insert({
-      name: r.full_name, email: r.email, type: 'Part-time', department: r.department || '',
+      name: r.full_name, email: r.email, type: r.faculty_type === 'Full-time' ? 'Internal' : 'Part-time', department: r.department || '',
       research_areas: r.research_areas || [], active: true
     }).select().single()
     if (error) { showToast(`Could not add: ${error.message}`, 'error'); return }
@@ -47,7 +57,7 @@ function ResponseCard({ r, researchers, onSaved }) {
     <div className="border border-slate-200 rounded-lg p-3 bg-white">
       <div className="flex justify-between items-start gap-3">
         <button className="text-left" onClick={() => setOpen(o => !o)}>
-          <div className="font-semibold">{open ? '▾' : '▸'} {r.full_name} <span className="text-xs font-normal text-slate-400">· {r.department || 'Department not given'}</span></div>
+          <div className="font-semibold">{open ? '▾' : '▸'} {r.full_name} <span className={`badge ml-1 ${r.faculty_type === 'Full-time' ? 'badge-purple' : 'badge-gray'}`}>{r.faculty_type || 'Part-time'}</span> <span className="text-xs font-normal text-slate-400">· {r.department || 'Department not given'}</span></div>
           <div className="text-xs text-slate-500 ml-4">{(r.research_areas || []).join(' · ') || 'No areas selected'}{r.hours_per_week ? ` · ${r.hours_per_week}/week` : ''}</div>
         </button>
         <div className="flex items-center gap-2 shrink-0">
@@ -66,16 +76,28 @@ function ResponseCard({ r, researchers, onSaved }) {
             <Answer label="Comfortable contributing" value={r.contributions} /><Answer label="Wants a match" value={r.wants_match} />
             <Answer label="Colleague / topic in mind" value={r.colleague_in_mind} /><Answer label="Other area" value={r.other_area} />
             <Answer label="Interested in" value={r.interested_activities} />
+            <Answer label="Would mentor / co-author with part-time faculty" value={r.mentor_interest} />
+            <Answer label="MS supervision this year" value={r.ms_supervision} />
+            <Answer label="Current papers" value={r.current_projects} />
           </div>
           <Answer label="Topics" value={r.topics} />
           <Answer label="Current work" value={r.current_work} />
           <Answer label="Anything else" value={r.anything_else} />
 
+          {r.faculty_type === 'Full-time' ? (
+            <div className="note text-xs flex flex-wrap items-center gap-2">
+              {researcher
+                ? <><span>Researcher record: <strong>{researcher.name}</strong> · areas {(researcher.research_areas || []).length} · MS supervisor {researcher.accepts_ms_students ? 'yes' : 'no'}</span>
+                    <button className="btn btn-soft !py-1 text-xs" onClick={updateResearcher}>Update research areas & MS supervision from this response</button></>
+                : <span>No researcher record with this email — add their email in Configuration → Researchers to link the response.</span>}
+            </div>
+          ) : (
           <div className="note text-xs">
             <strong>Suggested full-time matches</strong> (shared research areas):{' '}
             {matches.length ? matches.slice(0, 5).map(m => `${m.name} (${m.overlap.length})`).join(', ')
               : 'none yet — add research areas to full-time researchers in Configuration → Researchers.'}
           </div>
+          )}
 
           <div className="grid md:grid-cols-3 gap-3">
             <div><label>Status</label><select value={d.status} onChange={e => setD(x => ({ ...x, status: e.target.value }))}>{PT_STATUSES.map(s => <option key={s}>{s}</option>)}</select></div>
@@ -105,6 +127,7 @@ export default function PartTime() {
   const [rows, setRows] = useState([])
   const [researchers, setResearchers] = useState([])
   const [filter, setFilter] = useState('')
+  const [type, setType] = useState('')
   const [loading, setLoading] = useState(true)
   const surveyUrl = `${window.location.origin}/survey`
 
@@ -117,15 +140,15 @@ export default function PartTime() {
     setRows(r || []); setResearchers(x || []); setLoading(false)
   }
 
-  const shown = rows.filter(r => !filter || r.status === filter)
+  const shown = rows.filter(r => (!filter || r.status === filter) && (!type || (r.faculty_type || 'Part-time') === type))
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="🤝" title="Part-Time Faculty" subtitle="Research interest survey, suggested co-author matches and collaboration follow-up." />
+      <PageHeader icon="🤝" title="Faculty Survey" subtitle="Research interest survey for full-time and part-time faculty: co-author matches, MS supervisors and collaboration follow-up." />
 
       <div className="card space-y-2">
         <h3 className="font-bold">Survey link</h3>
-        <p className="text-xs text-slate-500">Send this link to part-time faculty at the start of the year (September). No sign-in needed; only you and the Admin see responses.</p>
+        <p className="text-xs text-slate-500">Send this link to all faculty — full-time and part-time — at the start of the year (September). No sign-in needed; only you and the Admin see responses.</p>
         <div className="flex gap-2">
           <input readOnly value={surveyUrl} onFocus={e => e.target.select()} />
           <button className="btn btn-soft whitespace-nowrap" onClick={() => { navigator.clipboard?.writeText(surveyUrl); showToast('Link copied') }}>Copy link</button>
@@ -144,7 +167,13 @@ export default function PartTime() {
 
       <div className="card space-y-2">
         <div className="flex justify-between items-center">
-          <h3 className="font-bold">Responses{filter ? ` · ${filter}` : ''}</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="font-bold">Responses{filter ? ` · ${filter}` : ''}</h3>
+            <select className="!w-40 !py-1 text-xs" value={type} onChange={e => setType(e.target.value)}>
+              <option value="">All faculty</option><option>Full-time</option><option>Part-time</option>
+            </select>
+            <span className="text-xs text-slate-400">{rows.filter(r => r.faculty_type === 'Full-time').length} full-time · {rows.filter(r => (r.faculty_type || 'Part-time') === 'Part-time').length} part-time</span>
+          </div>
           {filter && <button className="text-xs text-brand underline" onClick={() => setFilter('')}>show all</button>}
         </div>
         {loading ? <p className="text-sm text-slate-400">Loading…</p>

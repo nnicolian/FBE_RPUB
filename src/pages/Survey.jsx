@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { RESEARCH_AREAS } from '../lib/workOptions'
 
-// Part-Time Faculty Research Interest Survey (Research Strategy, Appendix 1).
+// Faculty Research Interest Survey (Research Strategy, Appendix 1) — part-time and full-time faculty.
 // Public page — no sign-in needed. Responses are visible only to the Research Coordinator and Admin.
 
 const ACADEMIC_YEAR = '2026–2027'
 const Q = {
   department: ['Management', 'Marketing', 'Finance & Accounting', 'Hospitality Management', 'Management Information Systems (MIS)', 'Economics', 'Other'],
-  employment_status: ['Part-time lecturer', 'Other'],
+  faculty_type: ['Full-time faculty', 'Part-time faculty'],
+  mentor_interest: ['Yes — happy to co-author with / mentor a part-time colleague', 'Maybe — depending on the topic', 'Not at this time'],
+  ms_supervision: ['Yes — I can supervise MS research papers this year', 'Maybe — one student at most', 'Not this year'],
   semesters_teaching: ['1 semester', '2–3 semesters', '4–6 semesters', '7+ semesters'],
   qualification: ["Bachelor's", "Master's / MBA", 'DBA', 'PhD'],
   published_recently: ['Yes — in a Scopus-indexed journal', 'Yes — in a conference proceeding', 'Yes — in a non-indexed journal', 'No, I have not published'],
@@ -28,6 +30,7 @@ const Q = {
   interested_activities: ['Personalised reference list for my topic', 'Journal targeting guidance (Scopus, quartile and ABS ratings)', 'Bi-weekly faculty writing sessions', 'Monthly journal club', 'Annual Research Showcase', 'None at the moment']
 }
 const EMPTY = {
+  faculty_type: '', mentor_interest: '', ms_supervision: '', current_projects: '',
   full_name: '', email: '', phone: '', department: '', employment_status: '', semesters_teaching: '', qualification: '',
   published_recently: '', publication_count: '', currently_researching: '', experience: '', research_areas: [], other_area: '',
   topics: '', approach: '', hours_per_week: '', semesters: [], contributions: [], wants_match: '', colleague_in_mind: '',
@@ -69,11 +72,13 @@ export default function Survey() {
   const text = k => e => setF(x => ({ ...x, [k]: e.target.value }))
 
   async function submit() {
+    if (!f.faculty_type) { setErr('Please say whether you are full-time or part-time faculty (question A1).'); window.scrollTo(0, 0); return }
     if (f.full_name.trim().length < 2) { setErr('Please enter your full name.'); return }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) { setErr('Please enter a valid email address.'); return }
     setSending(true); setErr('')
     // Insert only (no read-back): respondents can't read any responses.
-    const { error } = await supabase.from('pt_survey_responses').insert({ ...f, full_name: f.full_name.trim(), email: f.email.trim(), academic_year: ACADEMIC_YEAR })
+    const faculty_type = f.faculty_type.startsWith('Full') ? 'Full-time' : 'Part-time'
+    const { error } = await supabase.from('pt_survey_responses').insert({ ...f, faculty_type, employment_status: `${faculty_type} faculty`, full_name: f.full_name.trim(), email: f.email.trim(), academic_year: ACADEMIC_YEAR })
     setSending(false)
     if (error) { setErr('Sorry, your response could not be sent. Please try again.'); return }
     setDone(true); window.scrollTo(0, 0)
@@ -84,7 +89,7 @@ export default function Survey() {
       <div className="max-w-3xl mx-auto space-y-4">
         <div className="bg-gradient-to-r from-navy to-brand rounded-2xl p-6 text-white shadow-md">
           <div className="text-sm text-white/80">AUST – Faculty of Business & Economics</div>
-          <h1 className="text-2xl font-bold">Part-Time Faculty Research Interest Survey</h1>
+          <h1 className="text-2xl font-bold">Faculty Research Interest Survey</h1>
           <div className="text-sm text-white/80">{ACADEMIC_YEAR} · Confidential</div>
         </div>
 
@@ -97,15 +102,15 @@ export default function Survey() {
         ) : (
           <>
             <div className="card text-sm text-slate-600">
-              This survey takes about 5 minutes. It helps the Research Coordinator identify collaboration opportunities between
-              part-time and full-time faculty. All responses are confidential and used solely to match research interests and
+              This survey takes about 5 minutes and is for all FBE faculty — full-time and part-time. It helps the Research Coordinator
+              pair colleagues with related interests, find MS supervisors, and support collaboration between part-time and full-time faculty. All responses are confidential and used solely to match research interests and
               facilitate co-authorship invitations. There is no obligation to participate in any research activity.
             </div>
 
             <div className="card space-y-4">
               <h2 className="font-bold">A · Personal information</h2>
-              <Single name="department" label="A1. What is your department?" value={f.department} onChange={set('department')} options={Q.department} />
-              <Single name="employment_status" label="A2. What is your employment status at AUST?" value={f.employment_status} onChange={set('employment_status')} options={Q.employment_status} />
+              <Single name="faculty_type" label="A1. Are you full-time or part-time faculty at AUST? *" value={f.faculty_type} onChange={set('faculty_type')} options={Q.faculty_type} />
+              <Single name="department" label="A2. What is your department?" value={f.department} onChange={set('department')} options={Q.department} />
               <Single name="semesters_teaching" label="A3. How many semesters have you been teaching at AUST?" value={f.semesters_teaching} onChange={set('semesters_teaching')} options={Q.semesters_teaching} />
               <Single name="qualification" label="A4. What is your highest academic qualification?" value={f.qualification} onChange={set('qualification')} options={Q.qualification} />
             </div>
@@ -127,7 +132,16 @@ export default function Survey() {
               <Single name="approach" label="C3. Which research approach are you most comfortable with?" value={f.approach} onChange={set('approach')} options={Q.approach} />
             </div>
 
-            <div className="card space-y-4">
+            {f.faculty_type.startsWith('Full') ? (
+              <div className="card space-y-4">
+                <h2 className="font-bold">D · Collaboration & supervision (full-time faculty)</h2>
+                <Single name="mentor_interest" label="D1. Would you co-author with, or mentor, a part-time colleague working in a related area? (small, well-defined contributions)" value={f.mentor_interest} onChange={set('mentor_interest')} options={Q.mentor_interest} />
+                <Single name="ms_supervision" label="D2. Are you available to supervise MS student research papers this year?" value={f.ms_supervision} onChange={set('ms_supervision')} options={Q.ms_supervision} />
+                <Single name="hours_per_week" label="D3. How many hours per week can you give to research collaboration?" value={f.hours_per_week} onChange={set('hours_per_week')} options={Q.hours_per_week} />
+                <div><label>D4. Papers you are currently working on (titles or topics, optional)</label><textarea rows={2} value={f.current_projects} onChange={text('current_projects')} /></div>
+              </div>
+            ) : (
+              <div className="card space-y-4">
               <h2 className="font-bold">D · Collaboration availability</h2>
               <Single name="hours_per_week" label="D1. How many hours per week could you realistically give to research collaboration, outside your teaching?" value={f.hours_per_week} onChange={set('hours_per_week')} options={Q.hours_per_week} />
               <Multi label="D2. Which semester(s) work best for you?" value={f.semesters} onChange={set('semesters')} options={Q.semesters} />
@@ -136,6 +150,7 @@ export default function Survey() {
               {f.wants_match.includes('in mind') && <div><label>Colleague or topic you have in mind</label><input value={f.colleague_in_mind} onChange={text('colleague_in_mind')} /></div>}
             </div>
 
+            )}
             <div className="card space-y-4">
               <h2 className="font-bold">E · Current work & support</h2>
               <div><label>E1. If you are working on research now, what is it about? (optional)</label><textarea rows={2} value={f.current_work} onChange={text('current_work')} /></div>
