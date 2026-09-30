@@ -2,7 +2,8 @@
 
 export const JOURNAL_FIELDS = [
   'Management & Organisational Behaviour', 'Marketing & Consumer Behaviour', 'Finance & Accounting',
-  'Economics', 'MIS & Technology Management', 'Hospitality Management', 'Entrepreneurship'
+  'Economics', 'MIS & Technology Management', 'Hospitality Management', 'Entrepreneurship',
+  'Operations & Supply Chain', 'Crisis & Resilience'
 ]
 
 const QUARTILE = {

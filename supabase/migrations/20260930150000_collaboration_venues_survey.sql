@@ -20,3 +20,8 @@ create policy "venues coordinator write" on public.venues for all to authenticat
 drop policy if exists "researchers coordinator update" on public.researchers;
 create policy "researchers coordinator update" on public.researchers for update to authenticated
   using (public.my_role() = 'research_admin') with check (public.my_role() = 'research_admin');
+
+-- 2026-09-30 (applied): Venue Library extended from the Research Coordinator's list — 74 new venues
+-- (66 journals, 8 conferences) incl. two new fields, "Operations & Supply Chain" and "Crisis & Resilience".
+-- 18 were already present and left unchanged, except the two "ABS to confirm" entries now filled in:
+-- International Journal of Hospitality Management → ABS 3; Journal of Hospitality & Tourism Research → ABS 2.
