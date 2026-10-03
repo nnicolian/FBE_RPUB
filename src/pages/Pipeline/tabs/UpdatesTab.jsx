@@ -4,6 +4,7 @@ import { useToast } from '../../../context/ToastContext'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../context/AuthContext'
 import FileList from '../../../components/FileList'
+import { Pencil } from 'lucide-react'
 
 export default function UpdatesTab({ work, updates, canEdit, onReload }) {
   const { profile } = useAuth()
@@ -50,7 +51,7 @@ export default function UpdatesTab({ work, updates, canEdit, onReload }) {
               </div>
               {canEdit && (
                 <div className="flex items-center gap-2">
-                  <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(u.id)}>✎ Edit</button>
+                  <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(u.id)}><Pencil className="h-3.5 w-3.5" /> Edit</button>
                   <button className="text-xs text-rose-500" onClick={() => removeUpdate(u.id)}>Delete</button>
                 </div>
               )}

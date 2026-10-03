@@ -4,6 +4,7 @@ import { useToast } from '../../../context/ToastContext'
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
 import FileList from '../../../components/FileList'
+import { Pencil } from 'lucide-react'
 
 const STATUSES = ['Not Started', 'In Progress', 'Completed', 'Blocked']
 
@@ -58,7 +59,7 @@ export default function FilesTab({ work, deliverables, canEdit, onReload }) {
                         <select className="!w-36 !py-1" value={d.status} onChange={e => updateStatus(d.id, e.target.value)}>
                           {STATUSES.map(s => <option key={s}>{s}</option>)}
                         </select>
-                        <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(d.id)}>✎ Edit</button>
+                        <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(d.id)}><Pencil className="h-3.5 w-3.5" /> Edit</button>
                         <button className="text-xs text-rose-500" onClick={() => removeDeliverable(d.id)}>Delete</button>
                       </>
                     )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { listAttachments, uploadAttachment, deleteAttachment, getAttachmentUrl } from '../lib/attachments'
+import { Paperclip, X } from 'lucide-react'
 
 // Drop-in file list + uploader for any entity (work, phase, task, subtask,
 // deliverable, cost_entry, review_round). Requires a Supabase Storage
@@ -50,8 +51,8 @@ export default function FileList({ entityType, entityId, canEdit = true }) {
     <div className="flex flex-wrap gap-1 items-center mt-1">
       {files.map(f => (
         <span key={f.id} className="filechip inline-flex items-center gap-1 !cursor-default">
-          <button className="!bg-transparent !border-0 !p-0 underline" onClick={() => onOpen(f)}>📎 {f.file_name}</button>
-          {canEdit && <button className="!bg-transparent !border-0 !p-0 text-rose-500" onClick={() => onDelete(f)}>✕</button>}
+          <button className="!bg-transparent !border-0 !p-0 underline" onClick={() => onOpen(f)}><Paperclip className="h-3 w-3 inline -mt-0.5 mr-0.5" />{f.file_name}</button>
+          {canEdit && <button className="!bg-transparent !border-0 !p-0 text-rose-500" onClick={() => onDelete(f)} aria-label="Delete"><X className="h-3 w-3" /></button>}
         </span>
       ))}
       {canEdit && (

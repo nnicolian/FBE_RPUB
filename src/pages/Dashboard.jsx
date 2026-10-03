@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { deriveHealth, badgeClass } from '../lib/health'
 import { kpiLabel } from '../lib/workOptions'
+import { AlertTriangle, BookOpen, CheckCircle2, FileEdit, Send, Star, Trophy } from 'lucide-react'
 
 function Bar({ label, value, max, onClick }) {
   const pct = max ? (value / max) * 100 : 0
@@ -121,13 +122,13 @@ export default function Dashboard() {
   const goFiltered = (params) => nav(`/pipeline?${new URLSearchParams(params).toString()}`)
 
   const metrics = [
-    { label: 'Total works', value: works.length, icon: '📚', go: () => nav('/pipeline') },
-    { label: 'Pre-Submission', value: works.filter(w => w.submission_status === 'Pre-Submission').length, icon: '📝', go: () => goFiltered({ status: 'Pre-Submission' }) },
-    { label: 'Submitted', value: works.filter(w => ['Submitted', 'Submitted Abstract', 'Under Review', 'R&R'].includes(w.submission_status)).length, icon: '📤', go: () => nav('/pipeline') },
-    { label: 'Accepted', value: works.filter(w => w.submission_status === 'Accepted').length, icon: '✅', go: () => goFiltered({ status: 'Accepted' }) },
-    { label: 'Published', value: works.filter(w => w.submission_status === 'Published').length, icon: '🏆', go: () => goFiltered({ status: 'Published' }) },
-    { label: 'Q1 Targets', value: works.filter(w => w.venue_quality === 'Q1').length, icon: '⭐', go: () => nav('/pipeline') },
-    { label: 'Open Risks', value: works.reduce((n, w) => n + (w.risks || []).filter(r => r.status === 'Open').length, 0), icon: '⚠️', go: () => nav('/pipeline') }
+    { label: 'Total works', value: works.length, icon: BookOpen, go: () => nav('/pipeline') },
+    { label: 'Pre-Submission', value: works.filter(w => w.submission_status === 'Pre-Submission').length, icon: FileEdit, go: () => goFiltered({ status: 'Pre-Submission' }) },
+    { label: 'Submitted', value: works.filter(w => ['Submitted', 'Submitted Abstract', 'Under Review', 'R&R'].includes(w.submission_status)).length, icon: Send, go: () => nav('/pipeline') },
+    { label: 'Accepted', value: works.filter(w => w.submission_status === 'Accepted').length, icon: CheckCircle2, go: () => goFiltered({ status: 'Accepted' }) },
+    { label: 'Published', value: works.filter(w => w.submission_status === 'Published').length, icon: Trophy, go: () => goFiltered({ status: 'Published' }) },
+    { label: 'Q1 Targets', value: works.filter(w => w.venue_quality === 'Q1').length, icon: Star, go: () => nav('/pipeline') },
+    { label: 'Open Risks', value: works.reduce((n, w) => n + (w.risks || []).filter(r => r.status === 'Open').length, 0), icon: AlertTriangle, go: () => nav('/pipeline') }
   ]
 
   const maxDept = Math.max(1, ...departments.map(d => works.filter(w => w.department === d.name || (w.departments || []).includes(d.name)).length))
@@ -143,20 +144,18 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-navy to-brand rounded-2xl p-6 text-white flex items-center gap-4 shadow-md">
-        <div className="text-5xl leading-none">🎓</div>
-        <div>
-          <h1 className="text-2xl font-bold">AUST, FBE Research and Publications Platform</h1>
-          <p className="text-white/80 text-sm">Overview of the research pipeline across all departments.</p>
-        </div>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-accent-600">AUST · Faculty of Business &amp; Economics</p>
+        <h1 className="mt-2 text-2xl md:text-3xl font-bold text-ink-900 tracking-tight">Research &amp; Publications</h1>
+        <p className="mt-1 text-sm text-ink-500">Overview of the research pipeline across all departments.</p>
       </div>
 
       <KpiPanel />
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {metrics.map(m => (
-          <div key={m.label} className="card cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all" onClick={m.go}>
-            <span className="text-xl">{m.icon}</span>
+          <div key={m.label} className="card cursor-pointer hover:shadow-card-hover hover:-translate-y-0.5 transition-all" onClick={m.go}>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-50 text-accent-700"><m.icon className="h-4 w-4" /></span>
             <b className="text-2xl block mt-1">{m.value}</b>
             <span className="text-xs text-slate-400">{m.label}</span>
           </div>

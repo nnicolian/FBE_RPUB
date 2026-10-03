@@ -16,6 +16,7 @@ import MilestonesTab from './tabs/MilestonesTab'
 import RisksTab from './tabs/RisksTab'
 import UpdatesTab from './tabs/UpdatesTab'
 import MsTab from './tabs/MsTab'
+import { FileText } from 'lucide-react'
 
 // Committee Reviews tab removed: the pipeline is self-reported, with no approvals.
 const TABS = [
@@ -97,7 +98,7 @@ export default function WorkDetail() {
       <div className="card bg-gradient-to-br from-white to-blue-50/60">
         <div className="flex justify-between items-start gap-4">
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-navy to-brand text-white flex items-center justify-center text-xl shrink-0">📄</div>
+            <div className="w-10 h-10 rounded-xl bg-ink-900 text-white flex items-center justify-center shrink-0"><FileText className="h-5 w-5" /></div>
             <div>
               <h1 className="text-xl font-bold leading-tight">{work.title}</h1>
               <p className="text-sm text-slate-500">{work.author_order || work.lead || 'No lead set'} · {[work.department, ...(work.departments || []).filter(d => d !== work.department)].join(' + ')} · {work.research_type || 'Type not set'}</p>

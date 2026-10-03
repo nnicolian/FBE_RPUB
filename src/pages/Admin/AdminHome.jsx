@@ -7,6 +7,7 @@ import VenuesFull from './VenuesFull'
 import LifecycleTemplate from './LifecycleTemplate'
 import ResearchersAdmin from './ResearchersAdmin'
 import PageHeader from '../../components/PageHeader'
+import { Settings } from 'lucide-react'
 
 // Configuration is admin-only (route guard in App.jsx and the database policies).
 const TABS = ['Users & Roles', 'Departments', 'Researchers', 'Venues', 'Academic Years', 'Committee', 'Acceptance Targets', 'Oversight Settings', 'Lifecycle Template']
@@ -16,7 +17,7 @@ export default function AdminHome() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="⚙️" title="Configuration" subtitle="Master data, user roles, and oversight thresholds for the whole app." />
+      <PageHeader icon={Settings} title="Configuration" subtitle="Master data, user roles, and oversight thresholds for the whole app." />
 
       <div className="border-b border-slate-200 overflow-x-auto">
         <div className="flex gap-1 min-w-max">

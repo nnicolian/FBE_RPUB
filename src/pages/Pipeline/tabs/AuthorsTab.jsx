@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Pencil } from 'lucide-react'
 
 export default function AuthorsTab({ work, canEdit, onPatch }) {
   const [editing, setEditing] = useState(false)
@@ -22,7 +23,7 @@ export default function AuthorsTab({ work, canEdit, onPatch }) {
       <div className="card">
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-bold">Authorship</h3>
-          {canEdit && !editing && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditing(true)}>✎ Edit</button>}
+          {canEdit && !editing && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /> Edit</button>}
         </div>
         {!editing ? (
           <table>

@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
 import { RESEARCH_TYPES, MATURITY_LEVELS, ETHICS, KPI_CATEGORIES, kpiLabel, COLLABORATION_TYPES, INDEPENDENT, collaborationLabel } from '../../../lib/workOptions'
 import FileList from '../../../components/FileList'
+import { Pencil } from 'lucide-react'
 
 // Keeps the current value selectable even if it isn't in the standard list.
 const withCurrent = (list, v) => (v && !list.includes(v) ? [v, ...list] : list)
@@ -74,7 +75,7 @@ export default function OverviewTab({ work, health, canEdit, onPatch }) {
       <div className="card">
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold">General Attributes</h3>
-          {canEdit && !editing && <button className="btn btn-soft" onClick={startEdit}>✎ Edit</button>}
+          {canEdit && !editing && <button className="btn btn-soft" onClick={startEdit}><Pencil className="h-3.5 w-3.5" /> Edit</button>}
         </div>
 
         {!editing ? (

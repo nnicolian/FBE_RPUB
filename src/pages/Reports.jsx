@@ -5,6 +5,7 @@ import { badgeClass } from '../lib/health'
 import { STAGES } from '../lib/workOptions'
 import PageHeader from '../components/PageHeader'
 import PipelineSummary, { REPORT_TYPES } from '../components/PipelineSummary'
+import { BarChart3 } from 'lucide-react'
 
 function toCsv(rows) {
   if (!rows.length) return ''
@@ -96,7 +97,7 @@ export default function Reports() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="📈" title="Reports" subtitle="Detailed analytics across the research portfolio. Click any bar, row, or researcher to open it in the Pipeline."
+      <PageHeader icon={BarChart3} title="Reports" subtitle="Detailed analytics across the research portfolio. Click any bar, row, or researcher to open it in the Pipeline."
         action={<button className="btn btn-blue" onClick={exportCsv}>Export CSV</button>} />
 
       <div className="card flex flex-wrap items-center gap-3 print:hidden">

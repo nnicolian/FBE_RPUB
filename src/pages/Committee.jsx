@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext'
 import { hasFullContentAccess } from '../lib/roles'
 import PageHeader from '../components/PageHeader'
 import PipelineSummary from '../components/PipelineSummary'
+import { Pencil, Users } from 'lucide-react'
 
 // FBE Research Committee (Research Strategy §1, Appendix 4): advisory and facilitative,
 // meets monthly (September–June), keeps a brief record of decisions and action items,
@@ -61,7 +62,7 @@ function Meeting({ m, actions, canEdit, onChanged }) {
               {m.attendees && <div><span className="text-xs text-slate-400">Attendees:</span> {m.attendees}</div>}
               {m.notes && <div className="whitespace-pre-wrap"><div className="text-xs text-slate-400">Notes</div>{m.notes}</div>}
               {m.decisions && <div className="note whitespace-pre-wrap"><strong>Decisions:</strong> {m.decisions}</div>}
-              {canEdit && <div className="flex gap-3"><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => { setD(m); setEditing(true) }}>✎ Edit</button><button className="text-xs text-rose-500" onClick={remove}>Delete</button></div>}
+              {canEdit && <div className="flex gap-3"><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => { setD(m); setEditing(true) }}><Pencil className="h-3.5 w-3.5" /> Edit</button><button className="text-xs text-rose-500" onClick={remove}>Delete</button></div>}
             </div>
           )}
           {canEdit && (
@@ -119,7 +120,7 @@ export default function Committee() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="🏛️" title="Research Committee" subtitle="Monthly meetings, decisions, action items and reports to the Dean." />
+      <PageHeader icon={Users} title="Research Committee" subtitle="Monthly meetings, decisions, action items and reports to the Dean." />
 
       <div className="grid md:grid-cols-3 gap-4 print:hidden">
         <div className="card md:col-span-2 text-sm space-y-1">

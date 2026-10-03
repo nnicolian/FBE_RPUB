@@ -6,6 +6,7 @@ import { JOURNAL_FIELDS, quartileTarget, absTarget, isScopus } from '../lib/jour
 import { scimagoSearch, scholarJournal, scholarMetrics, SCOPUS_SOURCES, ABS_GUIDE } from '../lib/journalLinks'
 import PageHeader from '../components/PageHeader'
 import VenuesFull from './Admin/VenuesFull'
+import { Check, ExternalLink, Landmark, Pencil } from 'lucide-react'
 
 // Venue Library: every journal / conference in SAIP-Rpub with its quality ratings and quick links to
 // Google Scholar, Scimago, Scopus and the ABS guide. The Research Coordinator and Admin maintain it.
@@ -31,12 +32,12 @@ export default function VenueLibrary() {
     (!f.field || v.field === f.field) && (!f.quality || v.quality === f.quality) &&
     (!f.absMin || absNum(v.abs) >= f.absMin) && (!f.scopus || isScopus(v)))
 
-  const L = ({ href, children }) => <a className="text-xs text-brand underline whitespace-nowrap" href={href} target="_blank" rel="noreferrer">{children}</a>
+  const L = ({ href, children }) => <a className="inline-flex items-center gap-1 text-xs text-accent-700 hover:underline whitespace-nowrap" href={href} target="_blank" rel="noreferrer">{children}<ExternalLink className="h-3 w-3" /></a>
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="🏛️" title="Venue Library" subtitle="Journals and conferences with their Scopus status, SJR quartile and ABS rating — and links to check them on Google Scholar, Scimago, Scopus and the ABS guide."
-        action={canEdit && <button className="btn btn-soft" onClick={() => setManage(m => !m)}>{manage ? 'Back to the library' : '✎ Manage venues'}</button>} />
+      <PageHeader icon={Landmark} title="Venue Library" subtitle="Journals and conferences with their Scopus status, SJR quartile and ABS rating — and links to check them on Google Scholar, Scimago, Scopus and the ABS guide."
+        action={canEdit && <button className="btn btn-soft" onClick={() => setManage(m => !m)}>{manage ? 'Back to the library' : <><Pencil className="h-3.5 w-3.5" /> Manage venues</>}</button>} />
 
       {manage ? <VenuesFull /> : (
         <>
@@ -65,14 +66,14 @@ export default function VenueLibrary() {
                     <tr key={v.id}>
                       <td className="font-semibold">{v.name}{v.full_name && v.full_name !== v.name && <div className="text-xs text-slate-400 font-normal">{v.full_name}</div>}{v.publisher && <div className="text-xs text-slate-400 font-normal">{v.publisher}</div>}</td>
                       <td className="text-xs">{v.field || '—'}</td>
-                      <td>{isScopus(v) ? '✓' : <span className="text-xs text-slate-400">{v.indexing || '—'}</span>}</td>
+                      <td>{isScopus(v) ? <Check className="h-4 w-4 text-success-600 inline" /> : <span className="text-xs text-slate-400">{v.indexing || '—'}</span>}</td>
                       <td>{v.quality || '—'}{q && <div className="text-xs text-slate-400">{q.label}</div>}</td>
                       <td>{v.abs || '—'}{a && <div className="text-xs text-slate-400">{a.label}</div>}</td>
                       <td>
                         <div className="flex flex-wrap gap-x-3 gap-y-1">
-                          <L href={scholarJournal(name)}>Google Scholar ↗</L>
-                          <L href={scholarMetrics(name)}>Scholar Metrics ↗</L>
-                          <L href={scimagoSearch(name)}>Scimago ↗</L>
+                          <L href={scholarJournal(name)}>Google Scholar</L>
+                          <L href={scholarMetrics(name)}>Scholar Metrics</L>
+                          <L href={scimagoSearch(name)}>Scimago</L>
                         </div>
                       </td>
                     </tr>
@@ -85,9 +86,9 @@ export default function VenueLibrary() {
 
           <div className="card text-xs text-slate-500 flex flex-wrap gap-4 items-center">
             <span>Also useful:</span>
-            <L href={SCOPUS_SOURCES}>Scopus Sources ↗</L>
-            <L href={ABS_GUIDE}>ABS Academic Journal Guide ↗</L>
-            <L href="https://scholar.google.com/citations?view_op=top_venues&vq=bus">Google Scholar top business venues ↗</L>
+            <L href={SCOPUS_SOURCES}>Scopus Sources</L>
+            <L href={ABS_GUIDE}>ABS Academic Journal Guide</L>
+            <L href="https://scholar.google.com/citations?view_op=top_venues&vq=bus">Google Scholar top business venues</L>
             <span>Rankings change yearly — verify before submitting.</span>
           </div>
         </>

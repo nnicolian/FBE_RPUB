@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { JOURNAL_FIELDS, quartileTarget, absTarget } from '../../lib/journals'
 import { scimagoSearch } from '../../lib/journalLinks'
+import { ExternalLink, Pencil } from 'lucide-react'
 
 const CHECKLIST_ITEMS = [
   ['indexing', 'Indexing verified'], ['quality', 'Quality tier confirmed'], ['publisher', 'Publisher verified'],
@@ -147,8 +148,8 @@ export default function VenuesFull() {
                       <div className="text-xs text-slate-400">{v.verified_on || 'No verification date'}{v.verified_by ? ` · ${v.verified_by}` : ''}</div>
                     </td>
                     <td className="whitespace-nowrap">
-                      <a className="text-xs text-brand underline mr-2" href={scimagoSearch(v.full_name || v.name)} target="_blank" rel="noreferrer">Scimago ↗</a>
-                      <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => startEdit(v)}>✎ Edit</button>
+                      <a className="inline-flex items-center gap-1 text-xs text-accent-700 hover:underline mr-2" href={scimagoSearch(v.full_name || v.name)} target="_blank" rel="noreferrer">Scimago <ExternalLink className="h-3 w-3" /></a>
+                      <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => startEdit(v)}><Pencil className="h-3.5 w-3.5" /> Edit</button>
                     </td>
                   </tr>
                 )

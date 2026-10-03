@@ -3,6 +3,7 @@ import RecordEditor from '../../../components/RecordEditor'
 import { useToast } from '../../../context/ToastContext'
 import { supabase } from '../../../lib/supabaseClient'
 import FileList from '../../../components/FileList'
+import { Pencil } from 'lucide-react'
 
 function money(v) { return Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 
@@ -45,7 +46,7 @@ export default function FinanceTab({ work, costEntries, canEdit, onPatch, onRelo
         <div className="card">
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-bold">Funding</h3>
-            {canEdit && !editingFunding && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingFunding(true)}>✎ Edit</button>}
+            {canEdit && !editingFunding && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingFunding(true)}><Pencil className="h-3.5 w-3.5" /> Edit</button>}
           </div>
           {!editingFunding ? (
             <table><tbody>
@@ -90,7 +91,7 @@ export default function FinanceTab({ work, costEntries, canEdit, onPatch, onRelo
                 <tr key={c.id}>
                   <td>{c.description}</td><td>{c.entry_date || '—'}</td><td className="font-semibold">{money(c.amount)}</td>
                   <td><FileList entityType="cost_entry" entityId={c.id} canEdit={canEdit} /></td>
-                  {canEdit && <td className="whitespace-nowrap"><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(c.id)}>✎ Edit</button> <button className="text-xs text-rose-500 ml-1" onClick={() => removeCost(c.id)}>Delete</button></td>}
+                  {canEdit && <td className="whitespace-nowrap"><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(c.id)}><Pencil className="h-3.5 w-3.5" /> Edit</button> <button className="text-xs text-rose-500 ml-1" onClick={() => removeCost(c.id)}>Delete</button></td>}
                 </tr>
               ))}
             </tbody>

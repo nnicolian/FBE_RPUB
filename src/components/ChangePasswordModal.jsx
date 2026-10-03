@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { X } from 'lucide-react'
 import PasswordInput from './PasswordInput'
 
 export default function ChangePasswordModal({ onClose }) {
@@ -23,11 +24,11 @@ export default function ChangePasswordModal({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="card w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-ink-950/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="card w-full max-w-sm space-y-4 !p-6 shadow-float animate-fade-in" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center">
           <h3 className="font-bold">Change Password</h3>
-          <button className="text-slate-400" onClick={onClose}>✕</button>
+          <button className="text-ink-400 hover:text-ink-700 rounded-lg p-1 hover:bg-ink-50" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></button>
         </div>
         {done ? (
           <div className="space-y-3">

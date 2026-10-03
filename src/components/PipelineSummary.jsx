@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { deriveHealth, badgeClass, daysFrom, latestUpdateDate } from '../lib/health'
 import { STAGES, kpiLabel } from '../lib/workOptions'
+import { Check, Printer } from 'lucide-react'
 
 // Printable pipeline summary for the Dean (Research Strategy, Appendices 2, 4 and 8):
 // monthly summary, mid-year KPI review (February), full-year review (June), committee reports.
@@ -64,7 +65,7 @@ export default function PipelineSummary({ type = 'monthly', year = '2026–2027'
             <p className="text-sm text-slate-500">{meta.intro}</p>
             <p className="text-xs text-slate-400 mt-1">Prepared {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </div>
-          <button className="btn btn-soft print:hidden" onClick={() => window.print()}>🖨 Print / Save as PDF</button>
+          <button className="btn btn-soft print:hidden" onClick={() => window.print()}><Printer className="h-4 w-4" /> Print / Save as PDF</button>
         </div>
       </div>
 
@@ -123,7 +124,7 @@ export default function PipelineSummary({ type = 'monthly', year = '2026–2027'
           <table>
             <thead><tr><th>Title</th><th>Department</th><th>Authors</th><th>Phase</th><th>Venue</th><th>Published</th><th>Counts</th></tr></thead>
             <tbody>{(type === 'annual' ? published : recent).map(w => (
-              <Paper key={w.id} w={w}><td>{w.venue}</td><td>{w.published_on || '—'}</td><td>{w.scopus_indexed && w.kpi_category !== 'Not counted' ? '✓' : '—'}</td></Paper>
+              <Paper key={w.id} w={w}><td>{w.venue}</td><td>{w.published_on || '—'}</td><td>{w.scopus_indexed && w.kpi_category !== 'Not counted' ? <Check className="h-4 w-4 text-success-600 inline" /> : '—'}</td></Paper>
             ))}</tbody>
           </table>
         )}

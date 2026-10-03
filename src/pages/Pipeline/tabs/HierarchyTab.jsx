@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
 import FileList from '../../../components/FileList'
 import { useToast } from '../../../context/ToastContext'
+import { Check, Pencil } from 'lucide-react'
 
 // Self-reporting pipeline (Research Strategy, Appendix 6): authors set a percentage per
 // sub-task. Sub-task status, phase progress, the phase milestone and the paper's
@@ -105,7 +106,7 @@ function TaskRow({ t, canEdit, h }) {
           <FileList entityType="task" entityId={t.id} canEdit={canEdit} />
           {canEdit && (
             <div className="flex gap-3">
-              <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditing(true)}>✎ Edit</button>
+              <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /> Edit</button>
               <button className="text-xs text-rose-500" onClick={() => h.deleteTask(t.id)}>Delete sub-task</button>
             </div>
           )}
@@ -127,11 +128,11 @@ function PhaseCard({ p, canEdit, h }) {
         <div className="flex items-center gap-2 flex-wrap">
           <strong>{p.name}</strong>
           <span className={`badge ${badgeClass(p.status)}`}>{p.status}</span>
-          {done && <span className="badge badge-green">✓ Milestone reached{p.actual_end ? ` · ${p.actual_end}` : ''}</span>}
+          {done && <span className="badge badge-green"><Check className="h-3 w-3" /> Milestone reached{p.actual_end ? ` · ${p.actual_end}` : ''}</span>}
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-sm font-bold">{p.progress}%</span>
-          {canEdit && !editing && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditing(true)}>✎ Edit</button>}
+          {canEdit && !editing && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /> Edit</button>}
           {canEdit && !editing && <button className="text-xs text-rose-500" onClick={() => h.deletePhase(p.id)}>Delete Phase</button>}
         </div>
       </div>
@@ -199,7 +200,7 @@ export default function HierarchyTab({ work, phases, canEdit, onReload }) {
           {sorted.map(p => (
             <div key={p.id} className={`rounded-lg border p-3 ${p.progress === 100 ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 bg-slate-50'}`}>
               <div className="text-xs font-semibold">{p.name}</div>
-              <div className="text-lg font-bold">{p.progress}%{p.progress === 100 && ' ✓'}</div>
+              <div className="text-lg font-bold">{p.progress}%{p.progress === 100 && <Check className="h-4 w-4 inline ml-1 text-success-600" />}</div>
               <ProgressBar value={p.progress} />
             </div>
           ))}

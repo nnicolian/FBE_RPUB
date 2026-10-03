@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import PasswordInput from '../components/PasswordInput'
+import AuthShell from '../components/AuthShell'
 
 export default function Login() {
   const { signIn, resetPassword } = useAuth()
@@ -32,12 +33,11 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy to-brand p-4">
-      <form onSubmit={mode === 'signin' ? onSubmit : onForgot} className="card w-full max-w-sm space-y-4">
-        <div>
-          <div className="text-4xl mb-2">🎓</div>
-          <h1 className="text-xl font-bold">AUST, FBE Research & Publications</h1>
-          <p className="text-sm text-slate-500">{mode === 'signin' ? 'Sign in to continue' : 'Reset your password'}</p>
+    <AuthShell>
+      <form onSubmit={mode === 'signin' ? onSubmit : onForgot} className="space-y-4">
+        <div className="text-center">
+          <h2 className="text-lg font-bold text-ink-900">{mode === 'signin' ? 'Welcome back' : 'Reset your password'}</h2>
+          <p className="text-xs text-ink-400 mt-1">{mode === 'signin' ? 'Sign in to continue' : 'We will email you a reset link'}</p>
         </div>
         {error && <div className="text-sm text-rose-600 bg-rose-50 rounded-lg px-3 py-2">{error}</div>}
         {info && <div className="text-sm text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">{info}</div>}
@@ -54,22 +54,22 @@ export default function Login() {
           </div>
         )}
 
-        <button className="btn btn-blue w-full" disabled={busy}>
+        <button className="btn btn-blue w-full !py-2.5" disabled={busy}>
           {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Send reset link'}
         </button>
 
         {mode === 'signin' ? (
-          <button type="button" className="text-xs text-brand font-semibold" onClick={() => { setMode('forgot'); setError(''); setInfo('') }}>
+          <button type="button" className="block mx-auto text-xs text-accent-700 font-medium hover:underline" onClick={() => { setMode('forgot'); setError(''); setInfo('') }}>
             Forgot your password?
           </button>
         ) : (
-          <button type="button" className="text-xs text-brand font-semibold" onClick={() => { setMode('signin'); setError(''); setInfo('') }}>
+          <button type="button" className="block mx-auto text-xs text-accent-700 font-medium hover:underline" onClick={() => { setMode('signin'); setError(''); setInfo('') }}>
             &larr; Back to sign in
           </button>
         )}
 
         <p className="text-xs text-slate-400">Accounts are created by the Faculty administrator. Part-time faculty: the research interest survey needs no account — use the link you received.</p>
       </form>
-    </div>
+    </AuthShell>
   )
 }

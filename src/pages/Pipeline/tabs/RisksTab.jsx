@@ -4,6 +4,7 @@ import { useToast } from '../../../context/ToastContext'
 import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
 import FileList from '../../../components/FileList'
+import { Pencil } from 'lucide-react'
 
 export default function RisksTab({ work, risks, canEdit, onReload }) {
   const { showToast } = useToast()
@@ -55,7 +56,7 @@ export default function RisksTab({ work, risks, canEdit, onReload }) {
               <div className="flex items-center gap-2">
                 <span className={`badge ${badgeClass(r.status)}`}>{r.status}</span>
                 {canEdit && r.status === 'Open' && <button className="text-xs text-brand font-semibold" onClick={() => closeRisk(r.id)}>Close</button>}
-                {canEdit && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(r.id)}>✎ Edit</button>}
+                {canEdit && <button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => setEditingId(r.id)}><Pencil className="h-3.5 w-3.5" /> Edit</button>}
                 {canEdit && <button className="text-xs text-rose-500" onClick={() => removeRisk(r.id)}>Delete</button>}
               </div>
             </div>

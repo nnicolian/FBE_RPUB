@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import PasswordInput from '../components/PasswordInput'
+import AuthShell from '../components/AuthShell'
 
 export default function ResetPassword() {
   const { updatePassword } = useAuth()
@@ -40,11 +41,11 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy to-brand p-4">
-      <div className="card w-full max-w-sm space-y-4">
-        <div>
-          <div className="text-4xl mb-2">🎓</div>
-          <h1 className="text-xl font-bold">Set a new password</h1>
+    <AuthShell>
+      <div className="space-y-4">
+        <div className="text-center">
+          <h2 className="text-lg font-bold text-ink-900">Set a new password</h2>
+          <p className="text-xs text-ink-400 mt-1">Enter a new password for your account</p>
         </div>
 
         {!ready && !done && (
@@ -73,6 +74,6 @@ export default function ResetPassword() {
           </div>
         )}
       </div>
-    </div>
+    </AuthShell>
   )
 }

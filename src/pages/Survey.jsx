@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { RESEARCH_AREAS } from '../lib/workOptions'
+import { HeartHandshake } from 'lucide-react'
 
 // Faculty Research Interest Survey (Research Strategy, Appendix 1) — part-time and full-time faculty.
 // Public page — no sign-in needed. Responses are visible only to the Research Coordinator and Admin.
@@ -87,7 +88,7 @@ export default function Survey() {
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-4">
-        <div className="bg-gradient-to-r from-navy to-brand rounded-2xl p-6 text-white shadow-md">
+        <div className="bg-ink-900 rounded-2xl p-6 text-white shadow-card">
           <div className="text-sm text-white/80">AUST – Faculty of Business & Economics</div>
           <h1 className="text-2xl font-bold">Faculty Research Interest Survey</h1>
           <div className="text-sm text-white/80">{ACADEMIC_YEAR} · Confidential</div>
@@ -95,7 +96,7 @@ export default function Survey() {
 
         {done ? (
           <div className="card text-center space-y-2 py-10">
-            <div className="text-4xl">🙏</div>
+            <div className="mx-auto h-12 w-12 rounded-xl bg-accent-50 flex items-center justify-center"><HeartHandshake className="h-6 w-6 text-accent-600" /></div>
             <h2 className="text-xl font-bold">Thank you.</h2>
             <p className="text-slate-600">The Research Coordinator will follow up individually with all interested respondents.</p>
           </div>

@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabaseClient'
 import { badgeClass } from '../../../lib/health'
 import { JOURNAL_FIELDS, quartileTarget, absTarget, isScopus, venueWarnings } from '../../../lib/journals'
 import { scimagoSearch, SCOPUS_SOURCES, ABS_GUIDE } from '../../../lib/journalLinks'
+import { AlertTriangle, Check, CheckCircle2, Circle, ExternalLink, Pencil } from 'lucide-react'
 
 function TargetBadges({ quality, abs }) {
   const q = quartileTarget(quality)
@@ -59,7 +60,7 @@ export default function VenueTab({ work, canEdit, onPatch }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        {canEdit && !editing && <button className="btn btn-soft" onClick={() => { setDraft(draftFrom(work)); setEditing(true) }}>✎ Edit Venue / Submission</button>}
+        {canEdit && !editing && <button className="btn btn-soft" onClick={() => { setDraft(draftFrom(work)); setEditing(true) }}><Pencil className="h-3.5 w-3.5" /> Edit Venue / Submission</button>}
       </div>
 
       {editing ? (
@@ -107,7 +108,7 @@ export default function VenueTab({ work, canEdit, onPatch }) {
           {warnings.length > 0 && (
             <div className="note text-sm space-y-1">
               <strong>Journal targeting</strong>
-              {warnings.map(w => <div key={w}>⚠️ {w}</div>)}
+              {warnings.map(w => <div key={w} className="flex items-start gap-1.5"><AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" /> {w}</div>)}
             </div>
           )}
           <div className="grid md:grid-cols-2 gap-4">
@@ -116,7 +117,7 @@ export default function VenueTab({ work, canEdit, onPatch }) {
               <table><tbody>
                 <tr><th>Target Venue</th><td>{work.venue || '—'}</td></tr>
                 <tr><th>Targeting</th><td><TargetBadges quality={work.venue_quality || venue?.quality} abs={venue?.abs} />{!venue && !work.venue_quality && '—'}</td></tr>
-                <tr><th>Scopus-indexed</th><td>{work.scopus_indexed ? '✓ Yes — counts toward the KPI once published' : 'Not confirmed'}</td></tr>
+                <tr><th>Scopus-indexed</th><td>{work.scopus_indexed ? <span className="inline-flex items-center gap-1"><Check className="h-4 w-4 text-success-600" /> Yes — counts toward the KPI once published</span> : 'Not confirmed'}</td></tr>
                 <tr><th>Field</th><td>{venue?.field || '—'}</td></tr>
                 <tr><th>Publisher</th><td>{venue?.publisher || '—'}</td></tr>
                 <tr><th>APC / Fee</th><td>{venue?.apc || '—'}</td></tr>
@@ -144,16 +145,16 @@ export default function VenueTab({ work, canEdit, onPatch }) {
             <div className="card">
               <h3 className="font-bold mb-2">Submission Readiness Checks</h3>
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">{work.scope_match_confirmed ? '✓' : '○'} Scope matches the intended venue</div>
-                <div className="flex items-center gap-2">{work.author_guidelines_reviewed ? '✓' : '○'} Author guidelines reviewed</div>
+                <div className="flex items-center gap-2">{work.scope_match_confirmed ? <CheckCircle2 className="h-4 w-4 text-success-600" /> : <Circle className="h-4 w-4 text-ink-300" />} Scope matches the intended venue</div>
+                <div className="flex items-center gap-2">{work.author_guidelines_reviewed ? <CheckCircle2 className="h-4 w-4 text-success-600" /> : <Circle className="h-4 w-4 text-ink-300" />} Author guidelines reviewed</div>
               </div>
               {venue?.prior_publication_policy && <div className="note mt-2"><strong>Prior-publication policy:</strong> {venue.prior_publication_policy}</div>}
               <p className="text-xs text-slate-400 mt-3">Journal rankings change every year — verify the current Scopus status, quartile and ABS rating before submitting.</p>
               {work.venue && work.venue !== 'N/A' && (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <a className="btn btn-soft !py-1 text-xs" href={scimagoSearch(venue?.full_name || work.venue)} target="_blank" rel="noreferrer">Check on Scimago ↗</a>
-                  <a className="btn btn-soft !py-1 text-xs" href={SCOPUS_SOURCES} target="_blank" rel="noreferrer">Scopus Sources ↗</a>
-                  <a className="btn btn-soft !py-1 text-xs" href={ABS_GUIDE} target="_blank" rel="noreferrer">ABS Guide ↗</a>
+                  <a className="btn btn-soft !py-1 text-xs" href={scimagoSearch(venue?.full_name || work.venue)} target="_blank" rel="noreferrer">Check on Scimago <ExternalLink className="h-3 w-3" /></a>
+                  <a className="btn btn-soft !py-1 text-xs" href={SCOPUS_SOURCES} target="_blank" rel="noreferrer">Scopus Sources <ExternalLink className="h-3 w-3" /></a>
+                  <a className="btn btn-soft !py-1 text-xs" href={ABS_GUIDE} target="_blank" rel="noreferrer">ABS Guide <ExternalLink className="h-3 w-3" /></a>
                 </div>
               )}
             </div>

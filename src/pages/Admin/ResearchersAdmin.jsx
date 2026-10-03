@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useToast } from '../../context/ToastContext'
 import { RESEARCH_AREAS, RESEARCHER_TYPES, researcherTypeLabel } from '../../lib/workOptions'
+import { Check, Pencil } from 'lucide-react'
 
 // Researchers are the names used as lead / co-author / supervisor on papers.
 // Linking a researcher to a login lets that person see and update the papers they author.
@@ -99,8 +100,8 @@ export default function ResearchersAdmin() {
                 <td>{r.department || '—'}</td>
                 <td>{r.profile_id ? (userName(r.profile_id) || 'Linked') : <span className="text-amber-600 text-xs">Not linked</span>}</td>
                 <td className="text-xs">{(r.research_areas || []).join(' · ') || '—'}</td>
-                <td>{r.accepts_ms_students ? '✓' : '—'}</td>
-                <td><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => start(r)}>✎ Edit</button></td>
+                <td>{r.accepts_ms_students ? <Check className="h-4 w-4 text-success-600 inline" /> : '—'}</td>
+                <td><button className="btn btn-ghost !py-1 !px-2 text-xs" onClick={() => start(r)}><Pencil className="h-3.5 w-3.5" /> Edit</button></td>
               </tr>
             ))}
           </tbody>

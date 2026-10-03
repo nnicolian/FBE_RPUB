@@ -4,6 +4,7 @@ import { badgeClass } from '../lib/health'
 import { useAuth } from '../context/AuthContext'
 import { canDecideSubmissions, canEditSubmissionDraft } from '../lib/roles'
 import PageHeader from '../components/PageHeader'
+import { Send } from 'lucide-react'
 
 function acceptedCounts(works, dept) {
   const a = works.filter(w => (w.department === dept || (w.departments || []).includes(dept)) && ['Accepted', 'Published'].includes(w.submission_status))
@@ -93,7 +94,7 @@ export default function Submissions() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="📤" title="Submissions" subtitle="Each department's chair prepares and attests their research submission; the Dean reviews and decides." />
+      <PageHeader icon={Send} title="Submissions" subtitle="Each department's chair prepares and attests their research submission; the Dean reviews and decides." />
       <div className="card">
         {loading ? <p className="text-slate-400 text-sm">Loading…</p> : (
           <table>

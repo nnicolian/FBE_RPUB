@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useToast } from '../context/ToastContext'
 import PageHeader from '../components/PageHeader'
 import { PT_STATUSES } from '../lib/workOptions'
+import { ArrowLeftRight, Check, Handshake } from 'lucide-react'
 
 // Faculty Survey (Research Strategy §4, Appendix 1) — part-time and full-time faculty. Part-time responses →
 // suggested full-time matches → introduction → collaboration; full-time responses update the researcher record
@@ -61,7 +62,7 @@ function ResponseCard({ r, researchers, onSaved }) {
           <div className="text-xs text-slate-500 ml-4">{(r.research_areas || []).join(' · ') || 'No areas selected'}{r.hours_per_week ? ` · ${r.hours_per_week}/week` : ''}</div>
         </button>
         <div className="flex items-center gap-2 shrink-0">
-          {r.matched_researcher && <span className="text-xs text-slate-500">↔ {r.matched_researcher}</span>}
+          {r.matched_researcher && <span className="text-xs text-slate-500 inline-flex items-center gap-1"><ArrowLeftRight className="h-3 w-3" /> {r.matched_researcher}</span>}
           <span className={`badge ${statusTone(r.status)}`}>{r.status}</span>
         </div>
       </div>
@@ -110,7 +111,7 @@ function ResponseCard({ r, researchers, onSaved }) {
               </select>
             </div>
             <div className="flex items-end">
-              {inResearchers ? <span className="text-xs text-emerald-700">✓ In the researcher list</span>
+              {inResearchers ? <span className="text-xs text-emerald-700 inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> In the researcher list</span>
                 : <button className="btn btn-soft" onClick={addResearcher}>+ Add to researchers</button>}
             </div>
           </div>
@@ -144,7 +145,7 @@ export default function PartTime() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="🤝" title="Faculty Survey" subtitle="Research interest survey for full-time and part-time faculty: co-author matches, MS supervisors and collaboration follow-up." />
+      <PageHeader icon={Handshake} title="Faculty Survey" subtitle="Research interest survey for full-time and part-time faculty: co-author matches, MS supervisors and collaboration follow-up." />
 
       <div className="card space-y-2">
         <h3 className="font-bold">Survey link</h3>

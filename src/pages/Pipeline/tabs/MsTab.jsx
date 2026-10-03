@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../context/AuthContext'
 import { useToast } from '../../../context/ToastContext'
 import { PHASES, MS_TIMELINE, MIN_MEETINGS_PER_PHASE } from '../../../lib/workOptions'
+import { Check, Pencil } from 'lucide-react'
 
 // MS student paper (Research Strategy §3, Appendix 5). The student is first author and has no
 // login; the supervisor is co-author and keeps the paper's progress up to date here.
@@ -65,7 +66,7 @@ export default function MsTab({ work, phases, meetings, canEdit, onPatch, onRelo
       <div className="card">
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold">MS Student Paper</h3>
-          {canEdit && !editing && <button className="btn btn-soft" onClick={() => { setD({ student_name: work.student_name || '', student_email: work.student_email || '', supervisor: work.supervisor || '', deanApproved: false }); setEditing(true) }}>✎ Edit</button>}
+          {canEdit && !editing && <button className="btn btn-soft" onClick={() => { setD({ student_name: work.student_name || '', student_email: work.student_email || '', supervisor: work.supervisor || '', deanApproved: false }); setEditing(true) }}><Pencil className="h-3.5 w-3.5" /> Edit</button>}
         </div>
         {editing ? (
           <div className="space-y-3">
@@ -104,7 +105,7 @@ export default function MsTab({ work, phases, meetings, canEdit, onPatch, onRelo
           {PHASES.map(p => (
             <div key={p} className={`rounded-lg border p-2 ${counts[p] >= MIN_MEETINGS_PER_PHASE ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 bg-slate-50'}`}>
               <div className="text-xs font-semibold">{p}</div>
-              <div className="text-lg font-bold">{counts[p]} / {MIN_MEETINGS_PER_PHASE}{counts[p] >= MIN_MEETINGS_PER_PHASE && ' ✓'}</div>
+              <div className="text-lg font-bold">{counts[p]} / {MIN_MEETINGS_PER_PHASE}{counts[p] >= MIN_MEETINGS_PER_PHASE && <Check className="h-4 w-4 inline ml-1 text-success-600" />}</div>
             </div>
           ))}
         </div>
@@ -141,7 +142,7 @@ export default function MsTab({ work, phases, meetings, canEdit, onPatch, onRelo
               return (
                 <tr key={t.phase}>
                   <td className="font-semibold">{t.phase}</td><td>{t.weeks}</td><td className="text-sm">{t.milestone}</td>
-                  <td>{p ? `${p.progress}%${p.progress === 100 ? ' ✓' : ''}` : '—'}</td>
+                  <td>{p ? <>{p.progress}%{p.progress === 100 && <Check className="h-3.5 w-3.5 inline ml-1 text-success-600" />}</> : '—'}</td>
                 </tr>
               )
             })}

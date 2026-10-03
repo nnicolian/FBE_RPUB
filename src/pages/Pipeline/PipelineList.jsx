@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext'
 import { canCreateWork, canSeeAllWorks } from '../../lib/roles'
 import { STAGES, KPI_CATEGORIES } from '../../lib/workOptions'
 import PageHeader from '../../components/PageHeader'
+import { BookOpen } from 'lucide-react'
 
 const EMPTY_WORK = {
   title: '', department: '', research_type: 'Journal Article', submission_status: 'Pre-Submission',
@@ -120,7 +121,7 @@ export default function PipelineList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon="📚" title="Research Pipeline" subtitle={canSeeAllWorks(profile) ? "All research outputs in progress or completed." : profile?.role === 'chair' ? `Papers in ${profile.department || 'your department'} and papers you author.` : "Your papers — the ones you lead or co-author."}
+      <PageHeader icon={BookOpen} title="Research Pipeline" subtitle={canSeeAllWorks(profile) ? "All research outputs in progress or completed." : profile?.role === 'chair' ? `Papers in ${profile.department || 'your department'} and papers you author.` : "Your papers — the ones you lead or co-author."}
         action={canCreate && <button className="btn btn-blue" onClick={() => setShowNew(true)}>+ New Work</button>} />
 
       <div className="card flex flex-wrap gap-3 items-center">
