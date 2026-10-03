@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, BookOpen, BarChart3, Landmark, Wrench, CalendarDays, Users, Handshake, Settings,
+  LayoutDashboard, BookOpen, BarChart3, Landmark, Wrench, CalendarDays, Users, Handshake, Settings, Compass,
 } from 'lucide-react'
 
 // Sidebar menu, grouped like SAIP / FIP. `roles: null` = everyone signed in.
@@ -9,6 +9,7 @@ export const NAV_GROUPS = ['Main', 'Library', 'Governance', 'Administration']
 export const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, group: 'Main', roles: null },
   { to: '/pipeline', label: 'Research Pipeline', icon: BookOpen, group: 'Main', roles: null },
+  { to: '/navigator', label: 'Research Navigator', icon: Compass, group: 'Main', roles: null },
   { to: '/reports', label: 'Reports', icon: BarChart3, group: 'Main', roles: null },
   { to: '/venues', label: 'Venue Library', icon: Landmark, group: 'Library', roles: null },
   { to: '/resources', label: 'Tools & Resources', icon: Wrench, group: 'Library', roles: null },

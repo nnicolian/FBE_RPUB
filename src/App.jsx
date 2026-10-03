@@ -13,6 +13,7 @@ import Committee from './pages/Committee'
 import Resources from './pages/Resources'
 import AdminHome from './pages/Admin/AdminHome'
 import Layout from './components/Layout'
+import Navigator from './pages/Navigator'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 // Department submissions were retired with the move to self-reporting (no approvals).
@@ -31,6 +32,9 @@ export default function App() {
       } />
       <Route path="/pipeline/:id" element={
         <ProtectedRoute><Layout><WorkDetail /></Layout></ProtectedRoute>
+      } />
+      <Route path="/navigator" element={
+        <ProtectedRoute><Layout><Navigator /></Layout></ProtectedRoute>
       } />
       <Route path="/reports" element={
         <ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>

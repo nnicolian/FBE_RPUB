@@ -16,13 +16,14 @@ import MilestonesTab from './tabs/MilestonesTab'
 import RisksTab from './tabs/RisksTab'
 import UpdatesTab from './tabs/UpdatesTab'
 import MsTab from './tabs/MsTab'
+import NavigatorWorkspace from '../../components/navigator/Navigator'
 import { FileText } from 'lucide-react'
 
 // Committee Reviews tab removed: the pipeline is self-reported, with no approvals.
 const TABS = [
   ['overview', 'Overview'], ['hierarchy', 'Pipeline Progress'], ['authors', 'Authors'],
   ['venue', 'Venue & Submission'], ['files', 'Deliverables & Files'],
-  ['finance', 'Costs & Funding'], ['milestones', 'Milestones'], ['risks', 'Risks & Issues'], ['updates', 'Updates']
+  ['finance', 'Costs & Funding'], ['milestones', 'Milestones'], ['risks', 'Risks & Issues'], ['updates', 'Updates'], ['navigator', 'Research Navigator']
 ]
 const STATUSES = ['Pre-Submission', 'Submitted', 'Submitted Abstract', 'Under Review', 'R&R', 'Resubmitted', 'Accepted', 'Published', 'Returned']
 
@@ -137,6 +138,7 @@ export default function WorkDetail() {
       {tab === 'finance' && <FinanceTab work={work} costEntries={costEntries} canEdit={canEdit} onPatch={patchWork} onReload={() => load()} />}
       {tab === 'milestones' && <MilestonesTab work={work} milestones={milestones} canEdit={canEdit} onReload={() => load()} />}
       {tab === 'risks' && <RisksTab work={work} risks={risks} canEdit={canEdit} onReload={() => load()} />}
+      {tab === 'navigator' && <NavigatorWorkspace work={work} canEdit={canEdit} onPatchWork={patchWork} />}
       {tab === 'updates' && <UpdatesTab work={work} updates={updates} canEdit={canEdit} onReload={() => load()} />}
     </div>
   )
