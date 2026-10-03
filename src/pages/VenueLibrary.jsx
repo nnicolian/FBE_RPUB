@@ -6,7 +6,8 @@ import { JOURNAL_FIELDS, quartileTarget, absTarget, isScopus } from '../lib/jour
 import { scimagoSearch, scholarJournal, scholarMetrics, SCOPUS_SOURCES, ABS_GUIDE } from '../lib/journalLinks'
 import PageHeader from '../components/PageHeader'
 import VenuesFull from './Admin/VenuesFull'
-import { Check, ExternalLink, Landmark, Pencil } from 'lucide-react'
+import VenueDetail from '../components/VenueDetail'
+import { Check, ChevronRight, ExternalLink, Landmark, Pencil } from 'lucide-react'
 
 // Venue Library: every journal / conference in SAIP-Rpub with its quality ratings and quick links to
 // Google Scholar, Scimago, Scopus and the ABS guide. The Research Coordinator and Admin maintain it.
@@ -19,6 +20,7 @@ export default function VenueLibrary() {
   const canEdit = hasFullContentAccess(profile)
   const [venues, setVenues] = useState([])
   const [manage, setManage] = useState(false)
+  const [selected, setSelected] = useState(null)
   const [f, setF] = useState({ q: '', field: '', quality: '', absMin: 0, scopus: false })
 
   useEffect(() => { if (!manage) load() }, [manage])
@@ -32,7 +34,8 @@ export default function VenueLibrary() {
     (!f.field || v.field === f.field) && (!f.quality || v.quality === f.quality) &&
     (!f.absMin || absNum(v.abs) >= f.absMin) && (!f.scopus || isScopus(v)))
 
-  const L = ({ href, children }) => <a className="inline-flex items-center gap-1 text-xs text-accent-700 hover:underline whitespace-nowrap" href={href} target="_blank" rel="noreferrer">{children}<ExternalLink className="h-3 w-3" /></a>
+  // Links don't open the venue panel (they open the site).
+  const L = ({ href, children }) => <a className="inline-flex items-center gap-1 text-xs text-accent-700 hover:underline whitespace-nowrap" href={href} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>{children}<ExternalLink className="h-3 w-3" /></a>
 
   return (
     <div className="space-y-4">
@@ -58,13 +61,13 @@ export default function VenueLibrary() {
 
           <div className="card overflow-x-auto">
             <table>
-              <thead><tr><th>Venue</th><th>Field</th><th>Scopus</th><th>SJR quartile</th><th>ABS</th><th>Check it on</th></tr></thead>
+              <thead><tr><th>Venue</th><th>Field</th><th>Scopus</th><th>SJR quartile</th><th>ABS</th><th>Check it on</th><th className="w-6" /></tr></thead>
               <tbody>
                 {shown.map(v => {
                   const q = quartileTarget(v.quality), a = absTarget(v.abs), name = v.full_name || v.name
                   return (
-                    <tr key={v.id}>
-                      <td className="font-semibold">{v.name}{v.full_name && v.full_name !== v.name && <div className="text-xs text-slate-400 font-normal">{v.full_name}</div>}{v.publisher && <div className="text-xs text-slate-400 font-normal">{v.publisher}</div>}</td>
+                    <tr key={v.id} className="cursor-pointer hover:bg-ink-50/70" onClick={() => setSelected(v)} title="Open the venue details">
+                      <td className="font-semibold text-accent-700">{v.name}{v.full_name && v.full_name !== v.name && <div className="text-xs text-slate-400 font-normal">{v.full_name}</div>}{v.publisher && <div className="text-xs text-slate-400 font-normal">{v.publisher}</div>}</td>
                       <td className="text-xs">{v.field || '—'}</td>
                       <td>{isScopus(v) ? <Check className="h-4 w-4 text-success-600 inline" /> : <span className="text-xs text-slate-400">{v.indexing || '—'}</span>}</td>
                       <td>{v.quality || '—'}{q && <div className="text-xs text-slate-400">{q.label}</div>}</td>
@@ -76,10 +79,11 @@ export default function VenueLibrary() {
                           <L href={scimagoSearch(name)}>Scimago</L>
                         </div>
                       </td>
+                      <td><ChevronRight className="h-4 w-4 text-ink-300" /></td>
                     </tr>
                   )
                 })}
-                {shown.length === 0 && <tr><td colSpan={6} className="text-center text-slate-400 py-6">No venues match.</td></tr>}
+                {shown.length === 0 && <tr><td colSpan={7} className="text-center text-slate-400 py-6">No venues match.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -91,6 +95,7 @@ export default function VenueLibrary() {
             <L href="https://scholar.google.com/citations?view_op=top_venues&vq=bus">Google Scholar top business venues</L>
             <span>Rankings change yearly — verify before submitting.</span>
           </div>
+          {selected && <VenueDetail venue={selected} onClose={() => setSelected(null)} />}
         </>
       )}
     </div>
