@@ -44,3 +44,38 @@ create policy navigator_delete on public.navigator_outputs for delete to authent
 -- Decisions the authors adopt from Research Navigator results (research question, theory, contribution, gap,
 -- method, Journal Target Ladder, key references). Saved on the paper; same access rules as the paper itself.
 alter table public.works add column if not exists navigator_decisions jsonb not null default '{}'::jsonb;
+
+-- Sharing for results that aren't attached to a paper (e.g. research landscapes):
+-- private (default) · specific people · Research Committee · faculty-wide. Results on a paper keep the paper's rules.
+alter table public.navigator_outputs add column if not exists visibility text not null default 'private'
+  check (visibility in ('private', 'people', 'committee', 'faculty'));
+alter table public.navigator_outputs add column if not exists shared_with uuid[] not null default '{}';
+
+create or replace function public.nav_is_committee() returns boolean
+language sql stable security definer set search_path = public as $$
+  select public.my_role() in ('admin', 'research_admin', 'dean')
+      or exists (select 1 from committee_members m join profiles p on p.id = auth.uid()
+                 where m.active and lower(regexp_replace(m.name, '[^A-Za-z]', '', 'g')) = lower(regexp_replace(p.full_name, '[^A-Za-z]', '', 'g')))
+$$;
+
+create or replace function public.nav_people() returns table(id uuid, full_name text)
+language sql stable security definer set search_path = public as $$
+  select p.id, p.full_name from profiles p where p.active and auth.uid() is not null order by p.full_name
+$$;
+revoke execute on function public.nav_is_committee(), public.nav_people() from public, anon;
+grant execute on function public.nav_is_committee(), public.nav_people() to authenticated;
+
+drop policy if exists navigator_select on public.navigator_outputs;
+create policy navigator_select on public.navigator_outputs for select to authenticated
+  using (created_by = (select auth.uid())
+         or (work_id is not null and exists (select 1 from public.works w where w.id = work_id))
+         or (work_id is null and (
+               visibility = 'faculty'
+            or (visibility = 'people' and (select auth.uid()) = any(shared_with))
+            or (visibility = 'committee' and public.nav_is_committee()))));
+
+drop policy if exists navigator_update on public.navigator_outputs;
+create policy navigator_update on public.navigator_outputs for update to authenticated
+  using (created_by = (select auth.uid()))
+  with check (created_by = (select auth.uid())
+              and (work_id is null or exists (select 1 from public.works w where w.id = work_id)));

@@ -24,6 +24,7 @@ export default function NavigatorWorkspace({ work = null, canEdit = false, onPat
   const [toolKey, setToolKey] = useState(work ? (tools.find((t) => t.stage === stage) || tools[0]).key : 'landscape')
   const [outputs, setOutputs] = useState(null)
   const [openOut, setOpenOut] = useState(null)
+  const [shareFor, setShareFor] = useState(null)
   const [people, setPeople] = useState([])
   useEffect(() => { supabase.rpc('nav_people').then(({ data }) => setPeople(data || [])) }, [])
   const nameOf = (id) => people.find((p) => p.id === id)?.full_name || 'a colleague'
@@ -91,7 +92,8 @@ export default function NavigatorWorkspace({ work = null, canEdit = false, onPat
                 <div className="divide-y divide-slate-100">
                   {g.list.map((o) => (
                     <div key={o.id} className="py-2">
-                      <button className="w-full flex items-center gap-2 text-left" onClick={() => setOpenOut(openOut === o.id ? null : o.id)}>
+                      <div className="flex items-center gap-2">
+                      <button className="flex-1 min-w-0 flex items-center gap-2 text-left" onClick={() => setOpenOut(openOut === o.id ? null : o.id)}>
                         {openOut === o.id ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
                         <span className="font-medium text-sm flex-1">{toolByKey(o.tool)?.title || o.tool}{o.title ? ` — ${o.title}` : ''}</span>
                         {!work && <ShareBadge o={o} />}
@@ -101,6 +103,13 @@ export default function NavigatorWorkspace({ work = null, canEdit = false, onPat
                           {new Date(o.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}{o.ai_used ? ` · ${o.ai_used}` : ''}
                         </span>
                       </button>
+                      {!work && o.created_by === profile?.id && (
+                        <button className="btn btn-soft !py-1 text-xs shrink-0" onClick={() => setShareFor(shareFor === o.id ? null : o.id)} title="Share this result or attach it to a paper">
+                          <Share2 className="h-3.5 w-3.5" /> Share
+                        </button>
+                      )}
+                      </div>
+                      {shareFor === o.id && <div className="mt-2"><SharePanel o={o} people={people} startOpen onChanged={() => { setShareFor(null); loadOutputs() }} /></div>}
                       {openOut === o.id && (
                         <SavedOutput o={o} mine={o.created_by === profile?.id} onChanged={loadOutputs} work={work} canEdit={canEdit} onPatchWork={onPatchWork} people={people} />
                       )}
@@ -578,10 +587,10 @@ function ShareBadge({ o }) {
 }
 
 /** Results without a paper (e.g. landscapes): share them, or attach them to a paper. Only the author can. */
-function SharePanel({ o, people, onChanged }) {
+function SharePanel({ o, people, onChanged, startOpen = false }) {
   const { profile } = useAuth()
   const { showToast } = useToast()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(startOpen)
   const [vis, setVis] = useState(o.visibility || 'private')
   const [who, setWho] = useState(new Set(o.shared_with || []))
   const [papers, setPapers] = useState(null)

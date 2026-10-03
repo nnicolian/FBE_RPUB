@@ -75,7 +75,7 @@ export default function Sidebar() {
         <div className="rounded-xl bg-ink-50 p-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-400">Version</p>
           {/* Bump this label with each release to confirm the live site is up to date. */}
-          <p className="mt-0.5 text-xs font-medium text-ink-700">2026-10-03 · FIP look &amp; feel</p>
+          <p className="mt-0.5 text-xs font-medium text-ink-700">2026-10-05 · Navigator sharing</p>
         </div>
       </div>
     </aside>
