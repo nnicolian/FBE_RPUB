@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Compass, Search, Copy, Check, ClipboardPaste, ShieldCheck, AlertTriangle, Loader2, ExternalLink, Trash2, ThumbsUp, ThumbsDown,
-  ChevronDown, ChevronRight, FileText, Lock, Download, Pin, X,
+  ChevronDown, ChevronRight, FileText, Lock, Download, Pin, X, Share2, Link2, Users, Globe,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
@@ -24,10 +24,14 @@ export default function NavigatorWorkspace({ work = null, canEdit = false, onPat
   const [toolKey, setToolKey] = useState(work ? (tools.find((t) => t.stage === stage) || tools[0]).key : 'landscape')
   const [outputs, setOutputs] = useState(null)
   const [openOut, setOpenOut] = useState(null)
+  const [people, setPeople] = useState([])
+  useEffect(() => { supabase.rpc('nav_people').then(({ data }) => setPeople(data || [])) }, [])
+  const nameOf = (id) => people.find((p) => p.id === id)?.full_name || 'a colleague'
 
   const loadOutputs = async () => {
     let q = supabase.from('navigator_outputs').select('*').order('created_at', { ascending: false })
-    q = work ? q.eq('work_id', work.id) : q.is('work_id', null).eq('created_by', profile?.id)
+    // Without a paper: my own results plus those others have shared with me (the database decides which).
+    q = work ? q.eq('work_id', work.id) : q.is('work_id', null)
     const { data } = await q
     setOutputs(data || [])
   }
@@ -43,6 +47,10 @@ export default function NavigatorWorkspace({ work = null, canEdit = false, onPat
           <b>Research Navigator</b> gathers verified scholarly sources (OpenAlex, with DOIs) and prepares a request for <b>your own AI</b> — your AUST ChatGPT, or Claude.
           Paste its answer back and every reference is checked against those sources before it's saved{work ? ' to this paper' : ''}.
           It advises and assesses; it doesn't write your manuscript. Remember to follow the journal's AI-disclosure rules.
+          <span className="mt-1.5 flex items-start gap-1.5 text-xs text-slate-500">
+            <span className="badge badge-purple shrink-0">Coming</span>
+            <span>The Research Navigator will later run directly through a built-in AI connection: one click, no copying or pasting. The tools, checks and saved results will stay the same.</span>
+          </span>
         </span>
       </div>
 
@@ -74,21 +82,33 @@ export default function NavigatorWorkspace({ work = null, canEdit = false, onPat
         <h3 className="font-bold mb-2">Saved results{outputs ? ` (${outputs.length})` : ''}</h3>
         {outputs === null ? <p className="text-sm text-slate-400">Loading…</p>
           : outputs.length === 0 ? <p className="text-sm text-slate-400">Nothing saved yet.</p>
-          : (
-            <div className="divide-y divide-slate-100">
-              {outputs.map((o) => (
-                <div key={o.id} className="py-2">
-                  <button className="w-full flex items-center gap-2 text-left" onClick={() => setOpenOut(openOut === o.id ? null : o.id)}>
-                    {openOut === o.id ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
-                    <span className="font-medium text-sm flex-1">{toolByKey(o.tool)?.title || o.tool}{o.title ? ` — ${o.title}` : ''}</span>
-                    <VerifyBadge v={o.verification} />
-                    <span className="text-xs text-slate-400 whitespace-nowrap">{new Date(o.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}{o.ai_used ? ` · ${o.ai_used}` : ''}</span>
-                  </button>
-                  {openOut === o.id && <SavedOutput o={o} mine={o.created_by === profile?.id} onChanged={loadOutputs} work={work} canEdit={canEdit} onPatchWork={onPatchWork} />}
+          : [
+              { label: work ? null : 'Mine', list: work ? outputs : outputs.filter((o) => o.created_by === profile?.id) },
+              { label: 'Shared with me', list: work ? [] : outputs.filter((o) => o.created_by !== profile?.id) },
+            ].filter((g) => g.list.length).map((g) => (
+              <div key={g.label || 'all'} className="mb-2">
+                {g.label && <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mt-2">{g.label}</p>}
+                <div className="divide-y divide-slate-100">
+                  {g.list.map((o) => (
+                    <div key={o.id} className="py-2">
+                      <button className="w-full flex items-center gap-2 text-left" onClick={() => setOpenOut(openOut === o.id ? null : o.id)}>
+                        {openOut === o.id ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+                        <span className="font-medium text-sm flex-1">{toolByKey(o.tool)?.title || o.tool}{o.title ? ` — ${o.title}` : ''}</span>
+                        {!work && <ShareBadge o={o} />}
+                        <VerifyBadge v={o.verification} />
+                        <span className="text-xs text-slate-400 whitespace-nowrap">
+                          {o.created_by !== profile?.id ? `${nameOf(o.created_by)} · ` : ''}
+                          {new Date(o.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}{o.ai_used ? ` · ${o.ai_used}` : ''}
+                        </span>
+                      </button>
+                      {openOut === o.id && (
+                        <SavedOutput o={o} mine={o.created_by === profile?.id} onChanged={loadOutputs} work={work} canEdit={canEdit} onPatchWork={onPatchWork} people={people} />
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
       </div>
     </div>
   )
@@ -259,7 +279,8 @@ function Runner({ toolKey, work, canEdit, onPatchWork, onSaved, outputs }) {
       {(step === 'request' || step === 'check') && (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-slate-600">{work && (outputs.length > 0 || Object.keys(work.navigator_decisions || {}).length > 0) && <span className="block text-xs text-accent-700 mb-1">Includes this paper's decisions and earlier results, so the answer builds on them.</span>}<b>Step 1.</b> Copy this request{needsDraft ? ', open your AI, attach the manuscript file' : ' into your AI'} and send it. {sources.length} verified sources are included.</p>
+            <p className="text-sm text-slate-600">{work && (outputs.length > 0 || Object.keys(work.navigator_decisions || {}).length > 0) && <span className="block text-xs text-accent-700 mb-1">Includes this paper's decisions and earlier results, so the answer builds on them.</span>}<b>Step 1.</b> Copy this request{needsDraft ? ', open your AI, attach the manuscript file' : ' into your AI'} and send it. {sources.length} verified sources are included.
+              <span className="block text-[11px] text-slate-400">Copying and pasting is temporary: once the direct AI connection is added, this runs in one click.</span></p>
             <div className="flex gap-2">
               <button className="btn btn-blue" onClick={copy}>{copied ? <><Check className="h-4 w-4" /> Copied</> : <><Copy className="h-4 w-4" /> Copy request</>}</button>
               <a className="btn btn-ghost" href="https://chatgpt.com/" target="_blank" rel="noreferrer">ChatGPT <ExternalLink className="h-3.5 w-3.5" /></a>
@@ -377,7 +398,7 @@ function RenderedAnswer({ text, sources }) {
   return <div className="rounded-lg border border-slate-200 p-4 max-h-[600px] overflow-y-auto">{out}</div>
 }
 
-function SavedOutput({ o, mine, onChanged, work, canEdit, onPatchWork }) {
+function SavedOutput({ o, mine, onChanged, work, canEdit, onPatchWork, people = [] }) {
   const [showSources, setShowSources] = useState(false)
   const rate = async (r) => { await supabase.from('navigator_outputs').update({ rating: o.rating === r ? null : r }).eq('id', o.id); onChanged() }
   const remove = async () => { if (!confirm('Delete this saved result?')) return; await supabase.from('navigator_outputs').delete().eq('id', o.id); onChanged() }
@@ -394,6 +415,7 @@ function SavedOutput({ o, mine, onChanged, work, canEdit, onPatchWork }) {
         </>}
       </div>
       {work && canEdit && <AdoptPanel o={o} work={work} onPatchWork={onPatchWork} />}
+      {!work && mine && <SharePanel o={o} people={people} onChanged={onChanged} />}
       {showSources && (
         <ul className="text-xs space-y-1">
           {(o.sources || []).map((s) => (
@@ -540,6 +562,87 @@ function AdoptPanel({ o, work, onPatchWork }) {
       <div className="flex gap-2">
         <button className="btn btn-blue" onClick={adopt}>Adopt</button>
         <button className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+const SHARE_LABELS = { private: 'Private', people: 'Specific people', committee: 'Research Committee', faculty: 'Faculty-wide' }
+const SHARE_ICONS = { private: Lock, people: Users, committee: Users, faculty: Globe }
+
+function ShareBadge({ o }) {
+  const v = o.visibility || 'private'
+  const Icon = SHARE_ICONS[v]
+  return <span className="badge badge-gray"><Icon className="h-3 w-3" /> {v === 'people' ? `${(o.shared_with || []).length} people` : SHARE_LABELS[v]}</span>
+}
+
+/** Results without a paper (e.g. landscapes): share them, or attach them to a paper. Only the author can. */
+function SharePanel({ o, people, onChanged }) {
+  const { profile } = useAuth()
+  const { showToast } = useToast()
+  const [open, setOpen] = useState(false)
+  const [vis, setVis] = useState(o.visibility || 'private')
+  const [who, setWho] = useState(new Set(o.shared_with || []))
+  const [papers, setPapers] = useState(null)
+  const [paper, setPaper] = useState('')
+  useEffect(() => {
+    if (!open || papers) return
+    supabase.from('works').select('id, title, stage').order('title').then(({ data }) => setPapers(data || []))
+  }, [open, papers])
+  const save = async () => {
+    const { error } = await supabase.from('navigator_outputs').update({ visibility: vis, shared_with: vis === 'people' ? [...who] : [] }).eq('id', o.id)
+    showToast(error ? `Could not save: ${error.message}` : 'Sharing updated', error ? 'error' : 'success')
+    if (!error) { setOpen(false); onChanged() }
+  }
+  const attach = async () => {
+    if (!paper) return
+    const t = papers.find((p) => p.id === paper)
+    if (!confirm(`Attach this result to "${t?.title}"? It will then follow that paper's access rules and appear in its Research Navigator tab.`)) return
+    const { error } = await supabase.from('navigator_outputs').update({ work_id: paper, visibility: 'private', shared_with: [] }).eq('id', o.id)
+    showToast(error ? `Could not attach: ${error.message}` : 'Attached to the paper', error ? 'error' : 'success')
+    if (!error) onChanged()
+  }
+  if (!open) return <button className="btn btn-soft !py-1 text-xs" onClick={() => setOpen(true)}><Share2 className="h-3.5 w-3.5" /> Share or attach to a paper</button>
+  return (
+    <div className="rounded-lg border border-accent-100 bg-accent-50/50 p-3 space-y-3">
+      <div>
+        <p className="text-xs font-semibold text-slate-500 mb-1">Who can see this</p>
+        <div className="flex flex-wrap gap-1.5">
+          {Object.entries(SHARE_LABELS).map(([k, label]) => (
+            <button key={k} onClick={() => setVis(k)} className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${vis === k ? 'bg-ink-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>{label}</button>
+          ))}
+        </div>
+        <p className="mt-1 text-xs text-slate-500">
+          {vis === 'private' && 'Only you.'}
+          {vis === 'people' && 'You and the people you tick below.'}
+          {vis === 'committee' && 'You, the Research Committee members, research administrators and the Dean.'}
+          {vis === 'faculty' && 'Everyone who uses the research app.'}
+        </p>
+        {vis === 'people' && (
+          <div className="mt-2 max-h-40 overflow-y-auto grid sm:grid-cols-2 gap-x-3">
+            {people.filter((p) => p.id !== profile?.id).map((p) => (
+              <label key={p.id} className="flex items-center gap-2 text-sm font-normal text-slate-700 mb-0.5">
+                <input type="checkbox" checked={who.has(p.id)} onChange={(e) => { const n = new Set(who); if (e.target.checked) n.add(p.id); else n.delete(p.id); setWho(n) }} />
+                {p.full_name}
+              </label>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2 mt-2">
+          <button className="btn btn-blue !py-1 text-xs" onClick={save} disabled={vis === 'people' && who.size === 0}>Save sharing</button>
+          <button className="btn btn-ghost !py-1 text-xs" onClick={() => setOpen(false)}>Close</button>
+        </div>
+      </div>
+      <div className="border-t border-accent-100 pt-2">
+        <p className="text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Or attach it to a paper</p>
+        <div className="flex gap-2">
+          <select value={paper} onChange={(e) => setPaper(e.target.value)}>
+            <option value="">{papers === null ? 'Loading papers…' : 'Choose a paper…'}</option>
+            {(papers || []).map((p) => <option key={p.id} value={p.id}>{p.title} · {p.stage}</option>)}
+          </select>
+          <button className="btn btn-ghost !py-1 text-xs" disabled={!paper} onClick={attach}>Attach</button>
+        </div>
       </div>
     </div>
   )
