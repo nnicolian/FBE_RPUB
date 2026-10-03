@@ -18,7 +18,25 @@ export const NAV_ITEMS = [
   { to: '/admin', label: 'Configuration', icon: Settings, group: 'Administration', roles: ['admin'] },
 ]
 
-// The Faculty Intelligence Platform (SAIP), opened from the sidebar in a new tab.
+// The Faculty Intelligence Platform (SAIP).
 export const SAIP_URL = 'https://www.fbesaip.online'
+
+/**
+ * "Return to SAIP": SAIP opens this app in its own tab, so going back means closing this tab — the browser
+ * then shows the SAIP tab it came from, exactly where the user left it. When this tab wasn't opened from
+ * SAIP (a bookmark, a typed address) or the browser won't close it, SAIP opens in this same tab instead —
+ * never a new one.
+ */
+export function returnToSaip() {
+  const opener = window.opener
+  if (opener && !opener.closed) {
+    try { opener.focus() } catch { /* other site: focusing may be refused */ }
+    window.close()
+    // If the browser refused to close the tab, fall back to SAIP in this tab.
+    setTimeout(() => { if (!window.closed) window.location.href = SAIP_URL }, 300)
+  } else {
+    window.location.href = SAIP_URL
+  }
+}
 
 export const visibleItems = (profile) => NAV_ITEMS.filter((l) => !l.roles || l.roles.includes(profile?.role))

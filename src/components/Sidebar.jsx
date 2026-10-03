@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { GraduationCap, ChevronDown, ExternalLink } from 'lucide-react'
+import { GraduationCap, ChevronDown, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { NAV_GROUPS, SAIP_URL, visibleItems } from './navConfig'
+import { NAV_GROUPS, returnToSaip, visibleItems } from './navConfig'
 
 // Sidebar in the SAIP / FIP style: white, grouped sections that open and close (remembered per browser);
 // the section holding the current page is always open. Account actions are in the top bar (TopBar.jsx).
@@ -64,11 +64,10 @@ export default function Sidebar() {
         })}
 
         <div className="pt-4">
-          <a href={SAIP_URL} target="_blank" rel="noreferrer" className="nav-item nav-item-inactive">
-            <GraduationCap className="h-[18px] w-[18px] shrink-0" />
-            <span className="truncate">Faculty Intelligence Platform</span>
-            <ExternalLink className="ml-auto h-3.5 w-3.5 text-ink-300" />
-          </a>
+          <button onClick={returnToSaip} className="nav-item nav-item-inactive w-full text-left" title="Back to the Faculty Intelligence Platform (SAIP)">
+            <ArrowLeft className="h-[18px] w-[18px] shrink-0" />
+            <span className="truncate">Return to SAIP</span>
+          </button>
         </div>
       </nav>
 

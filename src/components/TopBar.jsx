@@ -4,7 +4,7 @@ import { GraduationCap, Shield, LogOut, KeyRound } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { ROLE_LABELS } from '../lib/roles'
 import ChangePasswordModal from './ChangePasswordModal'
-import { NAV_GROUPS, SAIP_URL, visibleItems } from './navConfig'
+import { NAV_GROUPS, returnToSaip, visibleItems } from './navConfig'
 
 // Top bar in the SAIP / FIP style: the signed-in user, Change Password and Sign out.
 // On small screens it also carries the menu (the sidebar is hidden there).
@@ -27,12 +27,12 @@ export default function TopBar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-white shrink-0">
             <GraduationCap className="h-4 w-4" />
           </div>
-          <select className="!w-auto !py-1.5" value={current} onChange={(e) => { if (e.target.value === 'saip') window.open(SAIP_URL, '_blank', 'noreferrer'); else nav(e.target.value) }}>
+          <select className="!w-auto !py-1.5" value={current} onChange={(e) => { if (e.target.value === 'saip') returnToSaip(); else nav(e.target.value) }}>
             {NAV_GROUPS.map((g) => {
               const groupItems = items.filter((i) => i.group === g)
               return groupItems.length ? <optgroup key={g} label={g}>{groupItems.map((i) => <option key={i.to} value={i.to}>{i.label}</option>)}</optgroup> : null
             })}
-            <option value="saip">Faculty Intelligence Platform ↗</option>
+            <option value="saip">← Return to SAIP</option>
           </select>
         </div>
 
