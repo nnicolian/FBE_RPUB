@@ -1,0 +1,9 @@
+# FBE R&P security headers (IT re-test F-07, 9 Nov 2026). Served by the Worker's static assets.
+# Framing is allowed only from SAIP, which embeds R&P on one page.
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  X-Robots-Tag: noindex, nofollow
+  Content-Security-Policy: frame-ancestors 'self' https://fbesaip.online https://www.fbesaip.online; object-src 'none'; base-uri 'self'
